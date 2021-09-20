@@ -12,7 +12,7 @@ screen_height = 576
 tile_size = 64
 game_over = False
 
-gravity = 0.7
+gravity = 0.75
 
 moving_left = False
 moving_right = False
