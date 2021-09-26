@@ -25,6 +25,7 @@ scroll_speed = 1
 screen = pygame.display.set_mode((side_margin + screen_width, lower_margin + screen_height))
 pygame.display.set_caption("level editor")
 
+
 def draw_bg():
     screen.fill((0, 0, 0))
     img = pygame.transform.scale(pygame.image.load("img/dirt.png"), (screen_width, screen_height))
@@ -32,13 +33,17 @@ def draw_bg():
     height = screen_height
     for x in range(3):
         for y in range(3):
-            screen.blit(img,((x * width) - scroll_hor, (y * height) - scroll_ver))
+            screen.blit(img, ((x * width) - scroll_hor, (y * height) - scroll_ver))
+
 
 def draw_grid():
     for c in range(cols + 1):
-        pygame.draw.line(screen, (255,255,255), (c * tile_size - scroll_hor, 0), (c * tile_size - scroll_hor, 4 * screen_height))
+        pygame.draw.line(screen, (255, 255, 255), (c * tile_size - scroll_hor, 0),
+                         (c * tile_size - scroll_hor, 4 * screen_height))
     for c in range(rows + 1):
-        pygame.draw.line(screen, (255,255,255), (0, c * tile_size - scroll_ver), (4 * screen_width, c * tile_size - scroll_ver))
+        pygame.draw.line(screen, (255, 255, 255), (0, c * tile_size - scroll_ver),
+                         (4 * screen_width, c * tile_size - scroll_ver))
+
 
 run = True
 while run:
@@ -80,7 +85,6 @@ while run:
                 scroll_down = False
             if event.key == pygame.K_RSHIFT:
                 scroll_speed = 1
-
 
     pygame.display.update()
 
