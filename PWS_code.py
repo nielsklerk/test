@@ -16,6 +16,10 @@ gravity = 0.75
 
 moving_left = False
 moving_right = False
+shoot = False
+
+# images
+arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
@@ -31,6 +35,7 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         self.speed = speed
+        self.shoot_cooldown = 0
         self.direction = 1
         self.jump = False
         self.in_air = True
@@ -40,21 +45,24 @@ class Player(pygame.sprite.Sprite):
         self.index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
-        temp_list = []
-        for i in range(5):
-            img = pygame.image.load("img/New Piskel.png")
-            img = pygame.transform.scale(img, (50, 100))
-            temp_list.append(img)
-        self.animation_list.append(temp_list)
-        temp_list = []
-        for i in range(6):
-            img = pygame.image.load("img/New Piskel.png")
-            img = pygame.transform.scale(img, (50, 100))
-            temp_list.append(img)
-        self.animation_list.append(temp_list)
+        animation_types = ['Idle', 'Run', 'Jump', 'Death']
+        for animation in animation_types:
+            # reset temporary list of images
+            temp_list = []
+            # count number of files in the folder
+            num_of_frames = len(os.listdir(f'img/Player/{animation}'))
+            for i in range(num_of_frames):
+                img = pygame.image.load(f'img/Player/{animation}/{i}.png').convert_alpha()
+                temp_list.append(img)
+            self.animation_list.append(temp_list)
         self.image = self.animation_list[self.action][self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+
+    def update(self):
+        self.update_animation()
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
 
     def move(self, moving_left, moving_right):
         dx = 0
@@ -100,9 +108,33 @@ class Player(pygame.sprite.Sprite):
         if self.index >= len(self.animation_list[self.action]):
             self.index = 0
 
+    def shoot(self):
+        if self.shoot_cooldown == 0:
+            self.shoot_cooldown = 20
+            arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
+            arrow_group.add(arrow)
+
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
+
+class Arrow(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        pygame.sprite.Sprite.__init__(self)
+        self.speed = 10
+        self.image = arrow_img
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.direction = direction
+
+    def update(self):
+        self.rect.x += self.direction * self.speed
+        if self.rect.right < 0 or self.rect.left > screen_width:
+            self.kill()
+
+
+# sprite groups
+arrow_group = pygame.sprite.Group()
 
 player = Player(100, 500, 5)
 
@@ -111,9 +143,15 @@ while run:
     clock.tick(fps)
 
     draw_bg()
+    player.update()
     player.draw()
 
+    arrow_group.update()
+    arrow_group.draw(screen)
+
     if player.alive:
+        if shoot:
+            player.shoot()
         if player.in_air:
             player.update_action(2)
         elif moving_left or moving_right:
@@ -121,7 +159,6 @@ while run:
         else:
             player.update_action(0)
         player.move(moving_left, moving_right)
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -135,12 +172,16 @@ while run:
                 player.jump = True
             if event.key == pygame.K_ESCAPE:
                 run = False
+            if event.key == pygame.K_SPACE:
+                shoot = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 moving_left = False
             if event.key == pygame.K_d:
                 moving_right = False
+            if event.key == pygame.K_SPACE:
+                shoot = False
 
     pygame.display.update()
 
