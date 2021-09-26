@@ -21,8 +21,17 @@ shoot = False
 # images
 arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 
+health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+item_dict = {
+    "Health": health_img,
+    "Mana": mana_img
+}
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
+
+font = pygame.font.SysFont("Futura", 30)
 
 
 def draw_bg():
@@ -30,10 +39,17 @@ def draw_bg():
     pygame.draw.line(screen, (255, 0, 0), (0, 500), (screen_width, 500))
 
 
+def draw_text(text, font, color, x, y):
+    img = font.render(text, True, color)
+    screen.blit(img, (x, y))
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
+        self.health = 10
+        self.max_health = 15
         self.speed = speed
         self.shoot_cooldown = 0
         self.direction = 1
@@ -53,6 +69,7 @@ class Player(pygame.sprite.Sprite):
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
                 img = pygame.image.load(f'img/Player/{animation}/{i}.png').convert_alpha()
+                img = pygame.transform.scale(img, (50, 100))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
         self.image = self.animation_list[self.action][self.index]
@@ -61,6 +78,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.update_animation()
+        self.check_alive()
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
 
@@ -99,6 +117,13 @@ class Player(pygame.sprite.Sprite):
             self.index = 0
             self.update_time = pygame.time.get_ticks()
 
+    def check_alive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+            self.update_action(3)
+
     def update_animation(self):
         animation_cooldown = 100
         self.image = self.animation_list[self.action][self.index]
@@ -106,16 +131,39 @@ class Player(pygame.sprite.Sprite):
             self.update_time = pygame.time.get_ticks()
             self.index += 1
         if self.index >= len(self.animation_list[self.action]):
-            self.index = 0
+            if self.action == 3:
+                self.index = len(self.animation_list[self.action]) - 1
+            else:
+                self.index = 0
 
     def shoot(self):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 20
-            arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
+            arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
+                          self.direction)
             arrow_group.add(arrow)
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+
+
+class Item(pygame.sprite.Sprite):
+    def __init__(self, x, y, item_type):
+        pygame.sprite.Sprite.__init__(self)
+        self.item_type = item_type
+        self.image = item_dict[self.item_type]
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + tile_size // 2, y + tile_size - self.image.get_height())
+
+    def update(self):
+        if pygame.sprite.collide_rect(self, player):
+            if self.item_type == "Health":
+                player.health += 25
+                if player.health > player.max_health:
+                    player.health = player.max_health
+            elif self.item_type == "Mana":
+                pass
+            self.kill()
 
 
 class Arrow(pygame.sprite.Sprite):
@@ -135,19 +183,30 @@ class Arrow(pygame.sprite.Sprite):
 
 # sprite groups
 arrow_group = pygame.sprite.Group()
+item_group = pygame.sprite.Group()
 
 player = Player(100, 500, 5)
+
+item = Item(100, 400, "Health")
+item_group.add(item)
 
 run = True
 while run:
     clock.tick(fps)
 
     draw_bg()
+    for x in range(player.max_health):
+        screen.blit(health_img, (90 + (x * 20), 40))
+    for x in range(player.health):
+        screen.blit(health_img, (90 + (x * 20), 40))
+
     player.update()
     player.draw()
 
     arrow_group.update()
+    item_group.update()
     arrow_group.draw(screen)
+    item_group.draw(screen)
 
     if player.alive:
         if shoot:
