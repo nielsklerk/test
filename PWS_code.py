@@ -4,12 +4,21 @@ import csv
 
 pygame.init()
 
+# frame rate
 clock = pygame.time.Clock()
 fps = 60
 
 screen_width = 1024
 screen_height = 576
+
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("PWS")
+
+
 tile_size = 64
+tile_types = 20
+cols = 48
+rows = 27
 game_over = False
 
 gravity = 0.75
@@ -19,8 +28,15 @@ moving_right = False
 shoot = False
 
 # images
+# tile images
+img_list = []
+for x in range(tile_types):
+    img = pygame.image.load(f"img/Tile/{x}.png")
+    img = pygame.transform.scale(img, (tile_size, tile_size))
+    img_list.append(img)
+# projectile images
 arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-
+# item images
 health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 item_dict = {
@@ -28,9 +44,7 @@ item_dict = {
     "Mana": mana_img
 }
 
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("PWS")
-
+# font
 font = pygame.font.SysFont("Futura", 30)
 
 
@@ -42,6 +56,18 @@ def draw_bg():
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
+
+def reset_level():
+    arrow_group.empty()
+    item_group.empty()
+    decoration_group.empty()
+    lava_group.empty()
+    data = []
+    for row in range(rows):
+        r = [-1] * cols
+        data.append(r)
+    return data
+
 
 
 class Player(pygame.sprite.Sprite):
@@ -61,9 +87,10 @@ class Player(pygame.sprite.Sprite):
         self.index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
+
+        # load in images for player
         animation_types = ['Idle', 'Run', 'Jump', 'Death']
         for animation in animation_types:
-            # reset temporary list of images
             temp_list = []
             # count number of files in the folder
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
@@ -147,6 +174,57 @@ class Player(pygame.sprite.Sprite):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
+class World():
+    def __init__(self):
+        self.obstacle_list = []
+
+    def process_data(self, data):
+        for y, row in enumerate(data):
+            for x, tile in enumerate(row):
+                if tile >= 0:
+                    img = img_list[tile]
+                    img_rect = img.get_rect()
+                    img_rect.x = x * tile_size
+                    img_rect.y = y * tile_size
+                    tile_data = (img, img_rect)
+                    if tile >= 0 and tile <= 10:
+                        self.obstacle_list.append(tile_data)
+                    elif tile >= 11 and tile <= 13:
+                        lava = Lava(img, x * tile_size, y * tile_size)
+                        lava_group.add(lava)
+                    elif tile >= 13 and tile <= 15:
+                        decoration = Decoration(img, x * tile_size, y * tile_size)
+                        decoration_group.add(decoration)
+                    elif tile == 15:
+                        player = Player(x * tile_size, y * tile_size, 5)
+                    elif tile == 16:
+                        item = Item(x * tile_size, y * tile_size, "Health")
+                        item_group.add(item)
+                    elif tile == 20:
+                        pass
+        return player
+
+    def draw(self):
+        for tile in self.obstacle_list:
+            screen.blit(tile[0], tile[1])
+
+
+class Decoration(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + tile_size // 2, y + (tile_size - self.image.get_height()))
+
+
+class Lava(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + tile_size // 2, y + (tile_size - self.image.get_height()))
+
+
 class Item(pygame.sprite.Sprite):
     def __init__(self, x, y, item_type):
         pygame.sprite.Sprite.__init__(self)
@@ -184,17 +262,28 @@ class Arrow(pygame.sprite.Sprite):
 # sprite groups
 arrow_group = pygame.sprite.Group()
 item_group = pygame.sprite.Group()
+decoration_group = pygame.sprite.Group()
+lava_group = pygame.sprite.Group()
 
-player = Player(100, 500, 5)
+world_data = []
+for row in range(rows):
+    r = [-1] * cols
+    world_data.append(r)
 
-item = Item(100, 400, "Health")
-item_group.add(item)
+with open("level{level}_data.csv", newline="") as csvfile:
+    reader = csv.reader(csvfile, delimiter=",")
+    for x, row in enumerate(reader):
+        for y, tile in enumerate(row):
+            world_data[x][y] = int(tile)
+
+world = World()
+player = world.process_data(world_data)
 
 run = True
 while run:
-    clock.tick(fps)
 
     draw_bg()
+    world.draw()
     for x in range(player.max_health):
         screen.blit(health_img, (90 + (x * 20), 40))
     for x in range(player.health):
@@ -203,10 +292,15 @@ while run:
     player.update()
     player.draw()
 
+    # update + draw groups
     arrow_group.update()
     item_group.update()
+    decoration_group.update()
+    lava_group.update()
     arrow_group.draw(screen)
     item_group.draw(screen)
+    decoration_group.draw(screen)
+    lava_group.draw(screen)
 
     if player.alive:
         if shoot:
@@ -242,6 +336,7 @@ while run:
             if event.key == pygame.K_SPACE:
                 shoot = False
 
+    clock.tick(fps)
     pygame.display.update()
 
 pygame.quit()
