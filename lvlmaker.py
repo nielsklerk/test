@@ -131,8 +131,20 @@ while run:
     pygame.draw.rect(screen, (100, 200, 100), (0, screen_height, screen_width + side_margin, lower_margin))
     draw_text(f"level: {level}", font, (255, 255, 255), 10, screen_height + lower_margin - 90)
     draw_text("W or S to chance level", font, (255, 255, 255), 10, screen_height + lower_margin - 50)
-    save_button.draw()
-    load_button.draw()
+
+    if save_button.draw():
+        with open(f"level_data/level_data{level}.csv", "w", newline="") as csvfile:
+            writer = csv.writer(csvfile, delimiter = ",")
+            for row in world_data:
+                writer.writerow(row)
+    if load_button.draw():
+        scroll_hor = 0
+        scroll_ver = 0
+        with open(f"level_data/level_data{level}.csv", "r", newline="") as csvfile:
+            reader = csv.reader(csvfile, delimiter = ",")
+            for x, row in enumerate(reader):
+                for y, tile in enumerate(row):
+                    world_data[x][y] = int(tile)
 
     button_count = 0
     for button_count, i in enumerate(button_list):
