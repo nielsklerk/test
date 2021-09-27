@@ -30,7 +30,7 @@ moving_right = False
 shoot = False
 
 scroll_threshold_hor = 4 * tile_size
-scroll_threshold_ver = tile_size
+scroll_threshold_ver = 2 * tile_size
 scroll_hor = 0
 scroll_ver = 0
 scroll_speed = 1
@@ -158,8 +158,6 @@ class Player(pygame.sprite.Sprite):
 
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
-        if self.rect.bottom + dy > screen_height:
-            dy = 0
 
         self.rect.x += dx
         self.rect.y += dy
@@ -170,11 +168,16 @@ class Player(pygame.sprite.Sprite):
             self.rect.x -= dx
             scroll_hor = -dx
 
-        elif (self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (
-                world.level_height * tile_size) - screen_height) \
-                or (self.rect.top < scroll_threshold_ver and total_ver_scroll > dy):
+        elif (self.rect.bottom > screen_height - scroll_threshold_ver and
+              total_ver_scroll < (world.level_height * tile_size) - screen_height):
             self.rect.y -= dy
             scroll_ver = -dy
+
+        elif self.rect.top < scroll_threshold_ver:
+            if total_ver_scroll < 0:
+                self.rect.y = 0
+                scroll_ver -= scroll_threshold_ver
+            scroll_ver -= dy
 
         return scroll_hor, scroll_ver
 
@@ -343,7 +346,7 @@ player = Player(player_x, player_y, 5)
 
 run = True
 while run:
-    print(f"{total_ver_scroll}")
+    print(f"{total_ver_scroll}, {scroll_ver}")
     draw_bg()
     world.draw()
     for x in range(player.max_health):
