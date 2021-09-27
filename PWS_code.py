@@ -179,6 +179,8 @@ class Player(pygame.sprite.Sprite):
 class World:
     def __init__(self):
         self.obstacle_list = []
+        self.player_x = 0
+        self.player_y = 0
 
     def process_data(self, data):
         global player
@@ -199,13 +201,14 @@ class World:
                         decoration = Decoration(img, x * tile_size, y * tile_size)
                         decoration_group.add(decoration)
                     elif tile == 1:
-                        plyr_x = x * tile_size
-                        plyr_y = y * tile_size
+                        self.player_x = x * tile_size
+                        self.player_y = y * tile_size
                     elif tile == 16:
                         item = Item(x * tile_size, y * tile_size, "Health")
                         item_group.add(item)
                     elif tile == 20:
                         pass
+        return self.player_x, self.player_y
 
     def draw(self):
         for tile in self.obstacle_list:
@@ -280,8 +283,8 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
             world_data[x][y] = int(tile)
 
 world = World()
-world.process_data(world_data)
-player = Player(player_x * tile_size, player_y * tile_size, 5)
+player_x, player_y = world.process_data(world_data)
+player = Player(player_x, player_y, 5)
 
 run = True
 while run:

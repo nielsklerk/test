@@ -49,6 +49,7 @@ print(world_data)
 
 font = pygame.font.SysFont("Futura", 30)
 
+
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
@@ -105,6 +106,7 @@ class Button:
 
         return action
 
+
 save_button = Button(screen_width // 2, screen_height + lower_margin - 50, save_img)
 load_button = Button(screen_width // 2 + 200, screen_height + lower_margin - 50, load_img)
 
@@ -134,14 +136,14 @@ while run:
 
     if save_button.draw():
         with open(f"level_data/level_data{level}.csv", "w", newline="") as csvfile:
-            writer = csv.writer(csvfile, delimiter = ",")
+            writer = csv.writer(csvfile, delimiter=",")
             for row in world_data:
                 writer.writerow(row)
     if load_button.draw():
         scroll_hor = 0
         scroll_ver = 0
         with open(f"level_data/level_data{level}.csv", "r", newline="") as csvfile:
-            reader = csv.reader(csvfile, delimiter = ",")
+            reader = csv.reader(csvfile, delimiter=",")
             for x, row in enumerate(reader):
                 for y, tile in enumerate(row):
                     world_data[x][y] = int(tile)
