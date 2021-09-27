@@ -14,12 +14,12 @@ screen_height = 576
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
-
 tile_size = 64
-tile_types = 20
+tile_types = 2
 cols = 48
 rows = 27
 game_over = False
+level = 0
 
 gravity = 0.75
 
@@ -29,7 +29,7 @@ shoot = False
 
 # images
 # tile images
-img_list = []
+img_list = [pygame.image.load(f"img/Tile/0.png")]
 for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
@@ -67,7 +67,6 @@ def reset_level():
         r = [-1] * cols
         data.append(r)
     return data
-
 
 
 class Player(pygame.sprite.Sprite):
@@ -182,20 +181,20 @@ class World():
         for y, row in enumerate(data):
             for x, tile in enumerate(row):
                 if tile >= 0:
-                    img = img_list[tile]
-                    img_rect = img.get_rect()
+                    image = img_list[tile]
+                    img_rect = image.get_rect()
                     img_rect.x = x * tile_size
                     img_rect.y = y * tile_size
                     tile_data = (img, img_rect)
-                    if tile >= 0 and tile <= 10:
+                    if tile == 0:
                         self.obstacle_list.append(tile_data)
-                    elif tile >= 11 and tile <= 13:
-                        lava = Lava(img, x * tile_size, y * tile_size)
+                    elif 11 <= tile <= 13:
+                        lava = Lava(image, x * tile_size, y * tile_size)
                         lava_group.add(lava)
-                    elif tile >= 13 and tile <= 15:
+                    elif 13 <= tile <= 15:
                         decoration = Decoration(img, x * tile_size, y * tile_size)
                         decoration_group.add(decoration)
-                    elif tile == 15:
+                    elif tile == 1:
                         player = Player(x * tile_size, y * tile_size, 5)
                     elif tile == 16:
                         item = Item(x * tile_size, y * tile_size, "Health")
@@ -270,7 +269,7 @@ for row in range(rows):
     r = [-1] * cols
     world_data.append(r)
 
-with open("level{level}_data.csv", newline="") as csvfile:
+with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
     reader = csv.reader(csvfile, delimiter=",")
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
@@ -283,6 +282,7 @@ run = True
 while run:
 
     draw_bg()
+    world.process_data(world_data)
     world.draw()
     for x in range(player.max_health):
         screen.blit(health_img, (90 + (x * 20), 40))
