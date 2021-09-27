@@ -29,9 +29,17 @@ moving_left = False
 moving_right = False
 shoot = False
 
+scroll_threshold_hor = 4 * tile_size
+scroll_threshold_ver = tile_size
+scroll_hor = 0
+scroll_ver = 0
+scroll_speed = 1
+total_hor_scroll = 0
+total_ver_scroll = 0
+
 # images
 # tile images
-img_list = [pygame.image.load(f"img/Tile/0.png")]
+img_list = []
 for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
@@ -52,7 +60,6 @@ font = pygame.font.SysFont("Futura", 30)
 
 def draw_bg():
     screen.fill((100, 100, 100))
-    pygame.draw.line(screen, (255, 0, 0), (0, 500), (screen_width, 500))
 
 
 def draw_text(text, font, color, x, y):
@@ -104,6 +111,8 @@ class Player(pygame.sprite.Sprite):
         self.image = self.animation_list[self.action][self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
 
     def update(self):
         self.update_animation()
@@ -114,6 +123,8 @@ class Player(pygame.sprite.Sprite):
     def move(self, moving_left, moving_right):
         dx = 0
         dy = 0
+        scroll_hor = 0
+        scroll_ver = 0
 
         if moving_left:
             dx = -self.speed
@@ -124,7 +135,7 @@ class Player(pygame.sprite.Sprite):
             self.flip = False
             self.direction = 1
         if self.jump and not self.in_air:
-            self.vel_y = -11
+            self.vel_y = -20
             self.jump = False
             self.in_air = True
 
@@ -133,12 +144,39 @@ class Player(pygame.sprite.Sprite):
             self.vel_y = 10
         dy += self.vel_y
 
-        if self.rect.bottom + dy > 500:
-            dy = 500 - self.rect.bottom
-            self.in_air = False
+        for tile in world.obstacle_list:
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                dx = 0
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                if self.vel_y < 0:
+                    self.vel_y = 0
+                    dy = tile[1].bottom - self.rect.top
+                elif self.vel_y >= 0:
+                    self.vel_y = 0
+                    self.in_air = False
+                    dy = tile[1].top - self.rect.bottom
+
+        if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
+            dx = 0
+        if self.rect.bottom + dy > screen_height:
+            dy = 0
 
         self.rect.x += dx
         self.rect.y += dy
+
+        if (self.rect.right > screen_width - scroll_threshold_hor and
+            total_hor_scroll < (world.level_length * tile_size) - screen_width) \
+                or (self.rect.left < scroll_threshold_hor and total_hor_scroll > abs(dx)):
+            self.rect.x -= dx
+            scroll_hor = -dx
+
+        elif (self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (
+                world.level_height * tile_size) - screen_height) \
+                or (self.rect.top < scroll_threshold_ver and total_ver_scroll > dy):
+            self.rect.y -= dy
+            scroll_ver = -dy
+
+        return scroll_hor, scroll_ver
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -183,7 +221,8 @@ class World:
         self.player_y = 0
 
     def process_data(self, data):
-        global player
+        self.level_length = len(data[0])
+        self.level_height = len(data)
         for y, row in enumerate(data):
             for x, tile in enumerate(row):
                 if tile >= 0:
@@ -212,6 +251,8 @@ class World:
 
     def draw(self):
         for tile in self.obstacle_list:
+            tile[1][0] += scroll_hor
+            tile[1][1] += scroll_ver
             screen.blit(tile[0], tile[1])
 
 
@@ -222,6 +263,10 @@ class Decoration(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midtop = (x + tile_size // 2, y + (tile_size - self.image.get_height()))
 
+    def update(self):
+        self.rect.x += scroll_hor
+        self.rect.y += scroll_ver
+
 
 class Lava(pygame.sprite.Sprite):
     def __init__(self, img, x, y):
@@ -229,6 +274,10 @@ class Lava(pygame.sprite.Sprite):
         self.image = img
         self.rect = self.image.get_rect()
         self.rect.midtop = (x + tile_size // 2, y + (tile_size - self.image.get_height()))
+
+    def update(self):
+        self.rect.x += scroll_hor
+        self.rect.y += scroll_ver
 
 
 class Item(pygame.sprite.Sprite):
@@ -240,6 +289,8 @@ class Item(pygame.sprite.Sprite):
         self.rect.midtop = (x + tile_size // 2, y + tile_size - self.image.get_height())
 
     def update(self):
+        self.rect.x += scroll_hor
+        self.rect.y += scroll_ver
         if pygame.sprite.collide_rect(self, player):
             if self.item_type == "Health":
                 player.health += 25
@@ -263,6 +314,9 @@ class Arrow(pygame.sprite.Sprite):
         self.rect.x += self.direction * self.speed
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()
+        for tile in world.obstacle_list:
+            if tile[1].colliderect(self.rect):
+                self.kill()
 
 
 # sprite groups
@@ -283,12 +337,13 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
             world_data[x][y] = int(tile)
 
 world = World()
+world_data[6][6] = 1
 player_x, player_y = world.process_data(world_data)
 player = Player(player_x, player_y, 5)
 
 run = True
 while run:
-
+    print(f"{total_ver_scroll}")
     draw_bg()
     world.draw()
     for x in range(player.max_health):
@@ -318,7 +373,9 @@ while run:
             player.update_action(1)
         else:
             player.update_action(0)
-        player.move(moving_left, moving_right)
+        scroll_hor, scroll_ver = player.move(moving_left, moving_right)
+        total_hor_scroll -= scroll_hor
+        total_ver_scroll -= scroll_ver
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
