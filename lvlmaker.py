@@ -15,7 +15,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tiles_types = 1
+tile_types = 1
 current_tile = 0
 
 scroll_left = False
@@ -28,7 +28,7 @@ scroll_speed = 1
 
 # load images
 img_list = []
-for x in range(tiles_types):
+for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
     img_list.append(img)
