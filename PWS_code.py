@@ -20,6 +20,8 @@ cols = 48
 rows = 27
 game_over = False
 level = 0
+player_x = 0
+player_y = 0
 
 gravity = 0.75
 
@@ -56,6 +58,7 @@ def draw_bg():
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
+
 
 def reset_level():
     arrow_group.empty()
@@ -173,11 +176,12 @@ class Player(pygame.sprite.Sprite):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
-class World():
+class World:
     def __init__(self):
         self.obstacle_list = []
 
     def process_data(self, data):
+        global player
         for y, row in enumerate(data):
             for x, tile in enumerate(row):
                 if tile >= 0:
@@ -195,13 +199,13 @@ class World():
                         decoration = Decoration(img, x * tile_size, y * tile_size)
                         decoration_group.add(decoration)
                     elif tile == 1:
-                        player = Player(x * tile_size, y * tile_size, 5)
+                        plyr_x = x * tile_size
+                        plyr_y = y * tile_size
                     elif tile == 16:
                         item = Item(x * tile_size, y * tile_size, "Health")
                         item_group.add(item)
                     elif tile == 20:
                         pass
-        return player
 
     def draw(self):
         for tile in self.obstacle_list:
@@ -276,13 +280,13 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
             world_data[x][y] = int(tile)
 
 world = World()
-player = world.process_data(world_data)
+world.process_data(world_data)
+player = Player(player_x * tile_size, player_y * tile_size, 5)
 
 run = True
 while run:
 
     draw_bg()
-    world.process_data(world_data)
     world.draw()
     for x in range(player.max_health):
         screen.blit(health_img, (90 + (x * 20), 40))
