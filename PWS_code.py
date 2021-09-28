@@ -30,7 +30,7 @@ moving_right = False
 shoot = False
 
 scroll_threshold_hor = 4 * tile_size
-scroll_threshold_ver = 2 * tile_size
+scroll_threshold_ver = tile_size
 scroll_hor = 0
 scroll_ver = 0
 scroll_speed = 1
@@ -123,8 +123,8 @@ class Player(pygame.sprite.Sprite):
     def move(self, moving_left, moving_right):
         dx = 0
         dy = 0
-        scroll_hor = 0
-        scroll_ver = 0
+        self.scroll_hor = 0
+        self.scroll_ver = 0
 
         if moving_left:
             dx = -self.speed
@@ -150,7 +150,7 @@ class Player(pygame.sprite.Sprite):
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = 0
-                    dy = tile[1].bottom - self.rect.top
+                    dy = tile[1].bottom + total_ver_scroll - self.rect.top
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.in_air = False
@@ -166,20 +166,21 @@ class Player(pygame.sprite.Sprite):
             total_hor_scroll < (world.level_length * tile_size) - screen_width) \
                 or (self.rect.left < scroll_threshold_hor and total_hor_scroll > abs(dx)):
             self.rect.x -= dx
-            scroll_hor = -dx
+            self.scroll_hor = -dx
 
         elif (self.rect.bottom > screen_height - scroll_threshold_ver and
               total_ver_scroll < (world.level_height * tile_size) - screen_height):
-            self.rect.y -= dy
-            scroll_ver = -dy
+            self.rect.y -= 2 * dy
+            self.scroll_ver = -dy
 
-        elif self.rect.top < scroll_threshold_ver:
-            if total_ver_scroll < 0:
-                self.rect.y = 0
-                scroll_ver -= scroll_threshold_ver
-            scroll_ver -= dy
+        elif self.rect.top < screen_height - scroll_threshold_ver:
+            if total_ver_scroll > scroll_threshold_ver:
+                self.rect.y += 0
+                self.vel_y += 0
+                self.scroll_ver = -dy
+            self.scroll_ver -= 0
 
-        return scroll_hor, scroll_ver
+        return self.scroll_hor, self.scroll_ver
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -377,8 +378,10 @@ while run:
         else:
             player.update_action(0)
         scroll_hor, scroll_ver = player.move(moving_left, moving_right)
-        total_hor_scroll -= scroll_hor
-        total_ver_scroll -= scroll_ver
+        if moving_right or moving_right:
+            total_hor_scroll -= scroll_hor
+        elif player.in_air:
+            total_ver_scroll -= scroll_ver
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

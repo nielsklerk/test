@@ -15,7 +15,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tile_types = 1
+tile_types = 2
 current_tile = 0
 
 scroll_left = False
@@ -32,6 +32,7 @@ for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
     img_list.append(img)
+print(len(img_list))
 
 save_img = pygame.image.load(f"img/New Piskel.png")
 load_img = pygame.image.load(f"img/New Piskel.png")
@@ -45,7 +46,7 @@ for row in range(rows):
 
 for tile in range(cols):
     world_data[rows - 1][tile] = 0
-print(world_data)
+
 
 font = pygame.font.SysFont("Futura", 30)
 
@@ -114,7 +115,7 @@ button_list = []
 button_col = 0
 button_row = 0
 for i in range(len(img_list)):
-    tile_button = Button(screen_width + (75 + button_col) + 50, 75 * button_row + 50, img_list[i])
+    tile_button = Button(screen_width + (75 * button_col) + 50, 75 * button_row + 50, img_list[i])
     button_list.append(tile_button)
     button_col += 1
     if button_col == 3:
