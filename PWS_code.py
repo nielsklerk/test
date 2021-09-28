@@ -123,8 +123,8 @@ class Player(pygame.sprite.Sprite):
     def move(self, moving_left, moving_right):
         dx = 0
         dy = 0
-        self.scroll_hor = 0
-        self.scroll_ver = 0
+        scroll_hor = 0
+        scroll_ver = 0
 
         if moving_left:
             dx = -self.speed
@@ -166,21 +166,9 @@ class Player(pygame.sprite.Sprite):
             total_hor_scroll < (world.level_length * tile_size) - screen_width) \
                 or (self.rect.left < scroll_threshold_hor and total_hor_scroll > abs(dx)):
             self.rect.x -= dx
-            self.scroll_hor = -dx
+            scroll_hor = -dx
 
-        elif (self.rect.bottom > screen_height - scroll_threshold_ver and
-              total_ver_scroll < (world.level_height * tile_size) - screen_height):
-            self.rect.y -= 2 * dy
-            self.scroll_ver = -dy
-
-        elif self.rect.top < screen_height - scroll_threshold_ver:
-            if total_ver_scroll > scroll_threshold_ver:
-                self.rect.y += 0
-                self.vel_y += 0
-                self.scroll_ver = -dy
-            self.scroll_ver -= 0
-
-        return self.scroll_hor, self.scroll_ver
+        return scroll_hor, scroll_ver
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -237,21 +225,20 @@ class World:
                     tile_data = (img, img_rect)
                     if tile == 0:
                         self.obstacle_list.append(tile_data)
+                    elif tile == 1:
+                        player = Player(x * tile_size, y * tile_size, 5)
                     elif 11 <= tile <= 13:
                         lava = Lava(image, x * tile_size, y * tile_size)
                         lava_group.add(lava)
                     elif 13 <= tile <= 15:
                         decoration = Decoration(img, x * tile_size, y * tile_size)
                         decoration_group.add(decoration)
-                    elif tile == 1:
-                        self.player_x = x * tile_size
-                        self.player_y = y * tile_size
                     elif tile == 16:
                         item = Item(x * tile_size, y * tile_size, "Health")
                         item_group.add(item)
                     elif tile == 20:
                         pass
-        return self.player_x, self.player_y
+        return player
 
     def draw(self):
         for tile in self.obstacle_list:
@@ -341,9 +328,8 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
             world_data[x][y] = int(tile)
 
 world = World()
-world_data[6][6] = 1
-player_x, player_y = world.process_data(world_data)
-player = Player(player_x, player_y, 5)
+player = world.process_data(world_data)
+
 
 run = True
 while run:
@@ -377,11 +363,10 @@ while run:
             player.update_action(1)
         else:
             player.update_action(0)
+
         scroll_hor, scroll_ver = player.move(moving_left, moving_right)
-        if moving_right or moving_right:
-            total_hor_scroll -= scroll_hor
-        elif player.in_air:
-            total_ver_scroll -= scroll_ver
+        total_hor_scroll -= scroll_hor
+        total_ver_scroll -= scroll_ver
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

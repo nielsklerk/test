@@ -32,7 +32,6 @@ for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
     img_list.append(img)
-print(len(img_list))
 
 save_img = pygame.image.load(f"img/New Piskel.png")
 load_img = pygame.image.load(f"img/New Piskel.png")
