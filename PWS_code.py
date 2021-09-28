@@ -222,7 +222,7 @@ class World:
                     img_rect = image.get_rect()
                     img_rect.x = x * tile_size
                     img_rect.y = y * tile_size
-                    tile_data = (img, img_rect)
+                    tile_data = (image, img_rect)
                     if tile == 0:
                         self.obstacle_list.append(tile_data)
                     elif tile == 1:
@@ -333,7 +333,7 @@ player = world.process_data(world_data)
 
 run = True
 while run:
-    print(f"{total_ver_scroll}, {scroll_ver}")
+    # print(f"{total_ver_scroll}, {scroll_ver}")
     draw_bg()
     world.draw()
     for x in range(player.max_health):
