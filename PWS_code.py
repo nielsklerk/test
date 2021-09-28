@@ -139,7 +139,8 @@ class Player(pygame.sprite.Sprite):
             self.jump = False
             self.in_air = True
 
-        self.vel_y += gravity
+
+        self.vel_y += gravity + scroll_ver
         if self.vel_y > 10:
             self.vel_y = 10
         dy += self.vel_y
@@ -150,7 +151,7 @@ class Player(pygame.sprite.Sprite):
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = 0
-                    dy = tile[1].bottom + total_ver_scroll - self.rect.top
+                    dy = tile[1].bottom - self.rect.top
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.in_air = False
@@ -159,21 +160,21 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
 
-        self.rect.x += dx
-        self.rect.y += dy
+        self.rect.x += int(dx)
+        self.rect.y += int(dy)
 
         if (self.rect.right > screen_width - scroll_threshold_hor and
             total_hor_scroll < (world.level_length * tile_size) - screen_width) \
                 or (self.rect.left < scroll_threshold_hor and total_hor_scroll > abs(dx)):
-            self.rect.x -= dx
+            self.rect.x -= int(dx)
             scroll_hor = -dx
 
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
-            scroll_ver = -dy
-
+            self.rect.y += 0
+            scroll_ver = -self.vel_y + scroll_threshold_ver // 10
         if self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (world.level_height * tile_size) - screen_height:
-            self.rect.y -= dy
-            scroll_ver = -dy
+            self.rect.y -= int(dy)
+            scroll_ver = -self.vel_y
 
 
         return scroll_hor, scroll_ver
@@ -250,8 +251,8 @@ class World:
 
     def draw(self):
         for tile in self.obstacle_list:
-            tile[1][0] += scroll_hor
-            tile[1][1] += scroll_ver
+            tile[1][0] += int(scroll_hor)
+            tile[1][1] += int(scroll_ver)
             screen.blit(tile[0], tile[1])
 
 
