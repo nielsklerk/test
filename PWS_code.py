@@ -168,6 +168,14 @@ class Player(pygame.sprite.Sprite):
             self.rect.x -= dx
             scroll_hor = -dx
 
+        if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
+            scroll_ver = -dy
+
+        if self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (world.level_height * tile_size) - screen_height:
+            self.rect.y -= dy
+            scroll_ver = -dy
+
+
         return scroll_hor, scroll_ver
 
     def update_action(self, new_action):
