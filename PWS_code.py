@@ -178,7 +178,6 @@ class Player(pygame.sprite.Sprite):
 
         return scroll_hor, scroll_ver
 
-
     def update_action(self, new_action):
         if new_action != self.action:
             self.action = new_action
