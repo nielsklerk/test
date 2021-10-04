@@ -139,7 +139,7 @@ class Player(pygame.sprite.Sprite):
             self.jump = False
             self.in_air = True
 
-        self.vel_y += gravity + scroll_ver
+        self.vel_y += gravity
         if self.vel_y > 10:
             self.vel_y = 10
         dy += self.vel_y
@@ -149,7 +149,7 @@ class Player(pygame.sprite.Sprite):
                 dx = 0
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
-                    self.vel_y = 0
+                    self.vel_y = scroll_ver
                     dy = tile[1].bottom - self.rect.top
                 elif self.vel_y >= 0:
                     self.vel_y = 0
@@ -169,8 +169,8 @@ class Player(pygame.sprite.Sprite):
             scroll_hor = -dx
 
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
-            self.rect.y += 0
-            scroll_ver = -self.vel_y + scroll_threshold_ver // 2
+            self.rect.top = scroll_threshold_ver
+            scroll_ver -= self.vel_y
         if self.rect.bottom > screen_height - scroll_threshold_ver and\
                 total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
@@ -378,6 +378,8 @@ while run:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.K_ESCAPE:
             run = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_a:
