@@ -20,6 +20,8 @@ cols = 48
 rows = 27
 game_over = False
 level = 0
+world = 0
+world_types = 1
 player_x = 0
 player_y = 0
 
@@ -37,13 +39,21 @@ scroll_speed = 1
 total_hor_scroll = 0
 total_ver_scroll = 0
 
+
 # images
+# background images
+bg_img_list = []
+for x in range[world_types]:
+    img = pygame.image.load(f"img/Tile/{x}.png")
+    img = pygame.transform.scale(img, (tile_size, tile_size))
+    bg_img_list.append(img)
+
 # tile images
-img_list = []
+tile_img_list = []
 for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
-    img_list.append(img)
+    tile_img_list.append(img)
 # projectile images
 arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 # item images
@@ -226,7 +236,7 @@ class World:
         for y, row in enumerate(data):
             for x, tile in enumerate(row):
                 if tile >= 0:
-                    image = img_list[tile]
+                    image = tile_img_list[tile]
                     img_rect = image.get_rect()
                     img_rect.x = x * tile_size
                     img_rect.y = y * tile_size
@@ -365,6 +375,7 @@ while run:
     if player.alive:
         if shoot:
             player.shoot()
+            player.update_action(3)
         if player.in_air:
             player.update_action(2)
         elif moving_left or moving_right:
