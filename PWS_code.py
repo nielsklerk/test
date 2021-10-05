@@ -20,7 +20,7 @@ cols = 48
 rows = 27
 game_over = False
 level = 0
-world = 0
+current_world = 0
 world_types = 1
 player_x = 0
 player_y = 0
@@ -43,9 +43,9 @@ total_ver_scroll = 0
 # images
 # background images
 bg_img_list = []
-for x in range[world_types]:
-    img = pygame.image.load(f"img/Tile/{x}.png")
-    img = pygame.transform.scale(img, (tile_size, tile_size))
+for x in range(world_types):
+    img = pygame.image.load(f"img/World/{x}.png")
+    img = pygame.transform.scale(img, (screen_width, screen_height))
     bg_img_list.append(img)
 
 # tile images
@@ -69,8 +69,8 @@ font = pygame.font.SysFont("Futura", 30)
 
 
 def draw_bg():
-    screen.fill((100, 100, 100))
-
+#    screen.blit(bg_img_list[current_world], (0,0))
+    screen.fill((150, 200, 50))
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
