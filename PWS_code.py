@@ -39,7 +39,6 @@ scroll_speed = 1
 total_hor_scroll = 0
 total_ver_scroll = 0
 
-
 # images
 # background images
 bg_img_list = []
@@ -69,8 +68,9 @@ font = pygame.font.SysFont("Futura", 30)
 
 
 def draw_bg():
-#    screen.blit(bg_img_list[current_world], (0,0))
+    # screen.blit(bg_img_list[current_world], (0,0))
     screen.fill((150, 200, 50))
+
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -181,7 +181,7 @@ class Player(pygame.sprite.Sprite):
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
             self.rect.top = scroll_threshold_ver
             scroll_ver -= self.vel_y
-        if self.rect.bottom > screen_height - scroll_threshold_ver and\
+        if self.rect.bottom > screen_height - scroll_threshold_ver and \
                 total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
             scroll_ver = -self.vel_y
@@ -347,7 +347,6 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
 
 world = World()
 player = world.process_data(world_data)
-
 
 run = True
 while run:
