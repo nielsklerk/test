@@ -115,7 +115,7 @@ class Player(pygame.sprite.Sprite):
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
                 img = pygame.image.load(f'img/Player/{animation}/{i}.png').convert_alpha()
-                img = pygame.transform.scale(img, (50, 100))
+                img = pygame.transform.scale(img, (tile_size, tile_size))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
         self.image = self.animation_list[self.action][self.index]
@@ -350,7 +350,6 @@ player = world.process_data(world_data)
 
 run = True
 while run:
-    # print(f"{total_ver_scroll}, {scroll_ver}")
     draw_bg()
     world.draw()
     for x in range(player.max_health):
