@@ -1,13 +1,16 @@
 import pygame
+from pygame import mixer
 import os
 import csv
 
 pygame.init()
+mixer.init()
 
 # frame rate
 clock = pygame.time.Clock()
 fps = 60
 
+# screen size
 screen_width = 1024
 screen_height = 576
 
@@ -26,11 +29,13 @@ game_started = False
 
 gravity = 0.75
 
+# action variables
 moving_left = False
 moving_right = False
 shoot = False
 cast = False
 
+# scroll variables
 scroll_threshold_hor = 4 * tile_size
 scroll_threshold_ver = tile_size
 scroll_hor = 0
@@ -39,7 +44,20 @@ scroll_speed = 1
 total_hor_scroll = 0
 total_ver_scroll = 0
 
+# load music and sounds
+pygame.mixer.music.load("audio/sound.mp3")
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play(-1, 0.0, 4000)
+jump_fx = pygame.mixer.Sound("audio/jump.wav")
+jump_fx.set_volume(0.5)
+cast_fx = pygame.mixer.Sound("audio/cast.wav")
+cast_fx.set_volume(0.5)
+shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
+shoot_fx.set_volume(0.5)
+
+
 # images
+# button images
 start_img = pygame.image.load("img/New Piskel.png")
 exit_img = pygame.image.load("img/New Piskel.png")
 respawn_img = pygame.image.load("img/New Piskel.png")
@@ -57,9 +75,11 @@ for x in range(tile_types):
     img = pygame.image.load(f"img/Tile/{x}.png")
     img = pygame.transform.scale(img, (tile_size, tile_size))
     tile_img_list.append(img)
+
 # projectile images
 arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 spell_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (50, 50))
+
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
@@ -151,11 +171,13 @@ class Player(pygame.sprite.Sprite):
                 img = pygame.transform.scale(img, (tile_size, tile_size))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
+
         self.image = self.animation_list[self.action][self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        self.mana = 10
 
     def update(self):
         self.update_animation()
@@ -187,6 +209,7 @@ class Player(pygame.sprite.Sprite):
         self.vel_y += gravity
         if self.vel_y > 10:
             self.vel_y = 10
+            self.in_air = True
         dy += self.vel_y
 
         for tile in world.obstacle_list:
@@ -204,15 +227,20 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
 
+        if dy > 0:
+            self.in_air = True
+
         self.rect.x += int(dx)
         self.rect.y += int(dy)
 
+        # scrolling horizontal
         if (self.rect.right > screen_width - scroll_threshold_hor and
             total_hor_scroll < (world.level_length * tile_size) - screen_width) \
                 or (self.rect.left < scroll_threshold_hor and total_hor_scroll > abs(dx)):
             self.rect.x -= int(dx)
             scroll_hor = -dx
 
+        # scrolling vertical
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
             self.rect.top = scroll_threshold_ver
             scroll_ver -= self.vel_y
@@ -254,6 +282,7 @@ class Player(pygame.sprite.Sprite):
             arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
             arrow_group.add(arrow)
+            shoot_fx.play()
 
     def cast(self):
         if self.cast_cooldown == 0:
@@ -261,6 +290,8 @@ class Player(pygame.sprite.Sprite):
             spell = Spell(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
             spell_group.add(spell)
+            self.mana -= 1
+            cast_fx.play()
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -354,7 +385,10 @@ class Arrow(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
-        self.image = arrow_img
+        if direction > 0:
+            self.image = arrow_img
+        else:
+            self.image = pygame.transform.flip(arrow_img, True, False)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.direction = direction
@@ -374,7 +408,10 @@ class Spell(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 6
-        self.image = spell_img
+        if direction > 0:
+            self.image = spell_img
+        else:
+            self.image = pygame.transform.flip(spell_img, True, False)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.direction = direction
@@ -510,6 +547,8 @@ while run:
                 moving_left = False
             if event.key == pygame.K_RIGHT:
                 moving_right = False
+            if event.key == pygame.K_z:
+                player.jump = False
             if event.key == pygame.K_a:
                 shoot = False
             if event.key == pygame.K_s:
