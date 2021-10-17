@@ -55,7 +55,6 @@ cast_fx.set_volume(0.5)
 shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
 shoot_fx.set_volume(0.5)
 
-
 # images
 # button images
 start_img = pygame.image.load("img/New Piskel.png")
