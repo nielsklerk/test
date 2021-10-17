@@ -59,7 +59,7 @@ for x in range(tile_types):
     tile_img_list.append(img)
 # projectile images
 arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-spell_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+spell_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (50, 50))
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
@@ -140,7 +140,7 @@ class Player(pygame.sprite.Sprite):
         self.update_time = pygame.time.get_ticks()
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Shootíng', 'Casting', 'Death']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
@@ -371,16 +371,20 @@ class Arrow(pygame.sprite.Sprite):
 class Spell(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
-        self.speed = 5
+        self.speed = 6
         self.image = spell_img
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.direction = direction
+        self.lifetime = 60
 
     def update(self):
         self.rect.x += self.direction * self.speed
         self.rect.x += scroll_hor
         self.rect.y += scroll_ver
+        self.lifetime -= 1
+        if self.lifetime <= 0:
+            self.kill()
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()
         for tile in world.obstacle_list:
@@ -429,10 +433,12 @@ while run:
 
         # update + draw groups
         arrow_group.update()
+        spell_group.update()
         item_group.update()
         decoration_group.update()
         lava_group.update()
         arrow_group.draw(screen)
+        spell_group.draw(screen)
         item_group.draw(screen)
         decoration_group.draw(screen)
         lava_group.draw(screen)
