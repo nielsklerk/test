@@ -75,7 +75,8 @@ font = pygame.font.SysFont(pygame.font.get_fonts()[41], 60)
 
 
 def draw_bg():
-    screen.blit(bg_img_list[current_world], (0,0))
+    screen.blit(bg_img_list[current_world], (0, 0))
+
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -367,6 +368,7 @@ class Arrow(pygame.sprite.Sprite):
         for tile in world.obstacle_list:
             if tile[1].colliderect(self.rect):
                 self.kill()
+
 
 class Spell(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
