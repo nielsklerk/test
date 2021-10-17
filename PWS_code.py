@@ -22,8 +22,7 @@ game_over = False
 level = 0
 current_world = 0
 world_types = 1
-player_x = 0
-player_y = 0
+game_started = False
 
 gravity = 0.75
 
@@ -40,6 +39,10 @@ total_hor_scroll = 0
 total_ver_scroll = 0
 
 # images
+start_img = pygame.image.load("img/New Piskel.png")
+exit_img = pygame.image.load("img/New Piskel.png")
+respawn_img = pygame.image.load("img/New Piskel.png")
+
 # background images
 bg_img_list = []
 for x in range(world_types):
@@ -87,6 +90,32 @@ def reset_level():
         r = [-1] * cols
         data.append(r)
     return data
+
+
+class Button:
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.clicked = False
+
+    def draw(self):
+        action = False
+
+        pos = pygame.mouse.get_pos()
+
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
+                action = True
+                self.clicked = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        screen.blit(self.image, self.rect)
+
+        return action
 
 
 class Player(pygame.sprite.Sprite):
@@ -227,8 +256,6 @@ class Player(pygame.sprite.Sprite):
 class World:
     def __init__(self):
         self.obstacle_list = []
-        self.player_x = 0
-        self.player_y = 0
 
     def process_data(self, data):
         self.level_length = len(data[0])
@@ -334,6 +361,11 @@ item_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
 
+start_btn = Button(screen_width//2 - 130, screen_height // 2 - 150, start_img)
+exit_btn = Button(screen_width//2 - 130, screen_height // 2 + 50, exit_img)
+respawn_btn = Button(screen_width//2 - 130, screen_height // 2 - 150, respawn_img)
+
+
 world_data = []
 for row in range(rows):
     r = [-1] * cols
@@ -350,40 +382,63 @@ player = world.process_data(world_data)
 
 run = True
 while run:
-    draw_bg()
-    world.draw()
-    for x in range(player.max_health):
-        screen.blit(health_img, (90 + (x * 20), 40))
-    for x in range(player.health):
-        screen.blit(health_img, (90 + (x * 20), 40))
+    if game_started:
+        draw_bg()
+        world.draw()
+        for x in range(player.max_health):
+            screen.blit(health_img, (90 + (x * 20), 40))
+        for x in range(player.health):
+            screen.blit(health_img, (90 + (x * 20), 40))
 
-    player.update()
-    player.draw()
+        player.update()
+        player.draw()
 
-    # update + draw groups
-    arrow_group.update()
-    item_group.update()
-    decoration_group.update()
-    lava_group.update()
-    arrow_group.draw(screen)
-    item_group.draw(screen)
-    decoration_group.draw(screen)
-    lava_group.draw(screen)
+        # update + draw groups
+        arrow_group.update()
+        item_group.update()
+        decoration_group.update()
+        lava_group.update()
+        arrow_group.draw(screen)
+        item_group.draw(screen)
+        decoration_group.draw(screen)
+        lava_group.draw(screen)
 
-    if player.alive:
-        if shoot:
-            player.shoot()
-            player.update_action(3)
-        if player.in_air:
-            player.update_action(2)
-        elif moving_left or moving_right:
-            player.update_action(1)
+        if player.alive:
+            if shoot:
+                player.shoot()
+                player.update_action(3)
+            if player.in_air:
+                player.update_action(2)
+            elif moving_left or moving_right:
+                player.update_action(1)
+            else:
+                player.update_action(0)
+
+            scroll_hor, scroll_ver = player.move(moving_left, moving_right)
+            total_hor_scroll -= scroll_hor
+            total_ver_scroll -= scroll_ver
         else:
-            player.update_action(0)
+            scroll_ver = 0
+            scroll_hor = 0
+            if respawn_btn():
+                total_hor_scroll = 0
+                total_ver_scroll = 0
+                world_data = reset_level()
+                with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
+                    reader = csv.reader(csvfile, delimiter=",")
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            world_data[x][y] = int(tile)
 
-        scroll_hor, scroll_ver = player.move(moving_left, moving_right)
-        total_hor_scroll -= scroll_hor
-        total_ver_scroll -= scroll_ver
+                world = World()
+                player = world.process_data(world_data)
+
+    else:
+        screen.fill((100, 100, 200))
+        if start_btn.draw():
+            game_started = True
+        if exit_btn.draw():
+            run = False
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
