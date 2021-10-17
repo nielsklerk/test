@@ -29,6 +29,7 @@ gravity = 0.75
 moving_left = False
 moving_right = False
 shoot = False
+cast = False
 
 scroll_threshold_hor = 4 * tile_size
 scroll_threshold_ver = tile_size
@@ -58,22 +59,23 @@ for x in range(tile_types):
     tile_img_list.append(img)
 # projectile images
 arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+spell_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+money_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 item_dict = {
     "Health": health_img,
-    "Mana": mana_img
+    "Mana": mana_img,
+    "Money": money_img
 }
 
 # font
-font = pygame.font.SysFont("Futura", 30)
+font = pygame.font.SysFont(pygame.font.get_fonts()[41], 60)
 
 
 def draw_bg():
-    # screen.blit(bg_img_list[current_world], (0,0))
-    screen.fill((150, 200, 50))
-
+    screen.blit(bg_img_list[current_world], (0,0))
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -126,6 +128,7 @@ class Player(pygame.sprite.Sprite):
         self.max_health = 15
         self.speed = speed
         self.shoot_cooldown = 0
+        self.cast_cooldown = 0
         self.direction = 1
         self.jump = False
         self.in_air = True
@@ -137,13 +140,13 @@ class Player(pygame.sprite.Sprite):
         self.update_time = pygame.time.get_ticks()
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Death']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shootíng', 'Casting', 'Death']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
-                img = pygame.image.load(f'img/Player/{animation}/{i}.png').convert_alpha()
+                img = pygame.image.load(f'img/Player/{animation}/{i}.png')
                 img = pygame.transform.scale(img, (tile_size, tile_size))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
@@ -158,6 +161,8 @@ class Player(pygame.sprite.Sprite):
         self.check_alive()
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+        if self.cast_cooldown > 0:
+            self.cast_cooldown -= 1
 
     def move(self, moving_left, moving_right):
         dx = 0
@@ -248,6 +253,13 @@ class Player(pygame.sprite.Sprite):
             arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
             arrow_group.add(arrow)
+
+    def cast(self):
+        if self.cast_cooldown == 0:
+            self.cast_cooldown = 100
+            spell = Spell(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
+                          self.direction)
+            spell_group.add(spell)
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -348,6 +360,27 @@ class Arrow(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x += self.direction * self.speed
+        self.rect.x += scroll_hor
+        self.rect.y += scroll_ver
+        if self.rect.right < 0 or self.rect.left > screen_width:
+            self.kill()
+        for tile in world.obstacle_list:
+            if tile[1].colliderect(self.rect):
+                self.kill()
+
+class Spell(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        pygame.sprite.Sprite.__init__(self)
+        self.speed = 5
+        self.image = spell_img
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.direction = direction
+
+    def update(self):
+        self.rect.x += self.direction * self.speed
+        self.rect.x += scroll_hor
+        self.rect.y += scroll_ver
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()
         for tile in world.obstacle_list:
@@ -357,6 +390,7 @@ class Arrow(pygame.sprite.Sprite):
 
 # sprite groups
 arrow_group = pygame.sprite.Group()
+spell_group = pygame.sprite.Group()
 item_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
@@ -404,6 +438,9 @@ while run:
         lava_group.draw(screen)
 
         if player.alive:
+            if cast:
+                player.cast()
+                player.update_action(4)
             if shoot:
                 player.shoot()
                 player.update_action(3)
@@ -420,7 +457,7 @@ while run:
         else:
             scroll_ver = 0
             scroll_hor = 0
-            if respawn_btn():
+            if respawn_btn.draw():
                 total_hor_scroll = 0
                 total_ver_scroll = 0
                 world_data = reset_level()
@@ -434,7 +471,8 @@ while run:
                 player = world.process_data(world_data)
 
     else:
-        screen.fill((100, 100, 200))
+        screen.fill((50, 50, 50))
+        draw_text("A Tiny Little Game", font, (0, 0, 0), 250, 60)
         if start_btn.draw():
             game_started = True
         if exit_btn.draw():
@@ -446,25 +484,28 @@ while run:
         if event.type == pygame.K_ESCAPE:
             run = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_LEFT:
                 moving_left = True
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_RIGHT:
                 moving_right = True
-            if event.key == pygame.K_w and player.alive:
+            if event.key == pygame.K_z and player.alive:
                 player.jump = True
             if event.key == pygame.K_ESCAPE:
                 run = False
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_a:
                 shoot = True
+            if event.key == pygame.K_s:
+                cast = True
 
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_LEFT:
                 moving_left = False
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_RIGHT:
                 moving_right = False
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_a:
                 shoot = False
-
+            if event.key == pygame.K_s:
+                cast = False
     clock.tick(fps)
     pygame.display.update()
 

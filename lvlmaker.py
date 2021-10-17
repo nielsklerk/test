@@ -47,7 +47,7 @@ for tile in range(cols):
     world_data[rows - 1][tile] = 0
 
 
-font = pygame.font.SysFont("Futura", 30)
+font = pygame.font.SysFont(pygame.font.get_fonts()[41], 30)
 
 
 def draw_text(text, font, color, x, y):
