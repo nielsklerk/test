@@ -167,7 +167,7 @@ class Player(pygame.sprite.Sprite):
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
                 player_img = pygame.image.load(f'img/Player/{animation}/{i}.png')
-                player_img = pygame.transform.scale(player_img, (2 * img.get_width(), 2 * img.get_height()))
+                player_img = pygame.transform.scale(player_img, (40, 64))
                 temp_list.append(player_img)
             self.animation_list.append(temp_list)
 
@@ -504,9 +504,11 @@ while run:
             scroll_hor, scroll_ver = player.move(moving_left, moving_right)
             total_hor_scroll -= scroll_hor
             total_ver_scroll -= scroll_ver
+
         else:
             scroll_ver = 0
             scroll_hor = 0
+            draw_text("You died", font, (0, 0, 0), 250, 60)
             if respawn_btn.draw():
                 total_hor_scroll = 0
                 total_ver_scroll = 0
