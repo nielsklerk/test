@@ -97,9 +97,9 @@ def draw_bg():
     screen.blit(bg_img_list[current_world], (0, 0))
 
 
-def draw_text(text, font, color, x, y):
-    img = font.render(text, True, color)
-    screen.blit(img, (x, y))
+def draw_text(text, font_type, color, xcoords, ycoords):
+    txt_img = font_type.render(text, True, color)
+    screen.blit(txt_img, (xcoords, ycoords))
 
 
 def reset_level():
@@ -108,18 +108,18 @@ def reset_level():
     decoration_group.empty()
     lava_group.empty()
     data = []
-    for row in range(rows):
-        r = [-1] * cols
-        data.append(r)
+    for one_row in range(rows):
+        p = [-1] * cols
+        data.append(p)
     return data
 
 
 class Button:
-    def __init__(self, x, y, image):
+    def __init__(self, xcoords, ycoords, image):
         self.image = image
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = xcoords
+        self.rect.y = ycoords
         self.clicked = False
 
     def draw(self):
@@ -141,7 +141,7 @@ class Button:
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, speed):
+    def __init__(self, xcoords, ycoords, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         self.health = 10
@@ -166,14 +166,14 @@ class Player(pygame.sprite.Sprite):
             # count number of files in the folder
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
-                img = pygame.image.load(f'img/Player/{animation}/{i}.png')
-                img = pygame.transform.scale(img, ( 2 * img.get_width(), 2 * img.get_height()))
-                temp_list.append(img)
+                player_img = pygame.image.load(f'img/Player/{animation}/{i}.png')
+                player_img = pygame.transform.scale(player_img, (2 * img.get_width(), 2 * img.get_height()))
+                temp_list.append(player_img)
             self.animation_list.append(temp_list)
 
         self.image = self.animation_list[self.action][self.index]
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
         self.height = self.image.get_height()
         self.mana = 10
@@ -186,17 +186,17 @@ class Player(pygame.sprite.Sprite):
         if self.cast_cooldown > 0:
             self.cast_cooldown -= 1
 
-    def move(self, moving_left, moving_right):
+    def move(self, moving_left_direction, moving_right_direction):
         dx = 0
         dy = 0
-        scroll_hor = 0
-        scroll_ver = 0
+        d_scroll_hor = 0
+        d_scroll_ver = 0
 
-        if moving_left:
+        if moving_left_direction:
             dx = -self.speed
             self.flip = True
             self.direction = -1
-        if moving_right:
+        if moving_right_direction:
             dx = self.speed
             self.flip = False
             self.direction = 1
@@ -211,21 +211,21 @@ class Player(pygame.sprite.Sprite):
             self.in_air = True
         dy += self.vel_y
 
-        for tile in world.obstacle_list:
-            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+        for one_tile in world.obstacle_list:
+            if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                dx = 0
                 if self.direction > 0:
-                    self.rect.right = tile[1].left
+                    self.rect.right = one_tile[1].left - 1
                 elif self.direction < 0:
-                    self.rect.left = tile[1].right + 5
-
-            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                    self.rect.left = one_tile[1].right + 1
+            if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
-                    self.vel_y = scroll_ver
-                    dy = tile[1].bottom - self.rect.top
+                    self.vel_y = d_scroll_ver
+                    dy = one_tile[1].bottom - self.rect.top
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.in_air = False
-                    dy = tile[1].top - self.rect.bottom
+                    dy = one_tile[1].top - self.rect.bottom
 
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
@@ -241,20 +241,18 @@ class Player(pygame.sprite.Sprite):
             total_hor_scroll < (world.level_length * tile_size) - screen_width) \
                 or (self.rect.left < scroll_threshold_hor and total_hor_scroll > abs(dx)):
             self.rect.x -= int(dx)
-            scroll_hor = -dx
+            d_scroll_hor = -dx
 
         # scrolling vertical
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
             self.rect.top = scroll_threshold_ver
-            scroll_ver -= self.vel_y
+            d_scroll_ver -= self.vel_y
         if self.rect.bottom > screen_height - scroll_threshold_ver and \
                 total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
-            scroll_ver = -self.vel_y
+            d_scroll_ver = -self.vel_y
 
-        self.mask = pygame.mask.from_surface(self.image)
-
-        return scroll_hor, scroll_ver
+        return d_scroll_hor, d_scroll_ver
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -305,48 +303,50 @@ class Player(pygame.sprite.Sprite):
 class World:
     def __init__(self):
         self.obstacle_list = []
+        self.level_length = 0
+        self.level_height = 0
 
     def process_data(self, data):
         self.level_length = len(data[0])
         self.level_height = len(data)
-        for y, row in enumerate(data):
-            for x, tile in enumerate(row):
-                if tile >= 0:
-                    image = tile_img_list[tile]
+        for ycoords, one_row in enumerate(data):
+            for xcoords, one_tile in enumerate(one_row):
+                if one_tile >= 0:
+                    image = tile_img_list[one_tile]
                     img_rect = image.get_rect()
-                    img_rect.x = x * tile_size
-                    img_rect.y = y * tile_size
+                    img_rect.x = xcoords * tile_size
+                    img_rect.y = ycoords * tile_size
                     tile_data = (image, img_rect)
-                    if tile == 0:
+                    if one_tile == 0:
                         self.obstacle_list.append(tile_data)
-                    elif tile == 1:
-                        player = Player(x * tile_size, y * tile_size, 5)
-                    elif 11 <= tile <= 13:
-                        lava = Lava(image, x * tile_size, y * tile_size)
+                    elif one_tile == 1:
+                        player_character = Player(xcoords * tile_size, ycoords * tile_size, 5)
+                    elif 11 <= one_tile <= 13:
+                        lava = Lava(image, xcoords * tile_size, ycoords * tile_size)
                         lava_group.add(lava)
-                    elif 13 <= tile <= 15:
-                        decoration = Decoration(img, x * tile_size, y * tile_size)
+                    elif 13 <= one_tile <= 15:
+                        decoration = Decoration(img, xcoords * tile_size, ycoords * tile_size)
                         decoration_group.add(decoration)
-                    elif tile == 16:
-                        item = Item(x * tile_size, y * tile_size, "Health")
+                    elif one_tile == 16:
+                        item = Item(xcoords * tile_size, ycoords * tile_size, "Health")
                         item_group.add(item)
-                    elif tile == 20:
+                    elif one_tile == 20:
                         pass
-        return player
+        return player_character
 
     def draw(self):
-        for tile in self.obstacle_list:
-            tile[1][0] += int(scroll_hor)
-            tile[1][1] += int(scroll_ver)
-            screen.blit(tile[0], tile[1])
+        for one_tile in self.obstacle_list:
+            one_tile[1][0] += int(scroll_hor)
+            one_tile[1][1] += int(scroll_ver)
+            screen.blit(one_tile[0], one_tile[1])
 
 
 class Decoration(pygame.sprite.Sprite):
-    def __init__(self, img, x, y):
+    def __init__(self, deco_img, xcoords, ycoords):
         pygame.sprite.Sprite.__init__(self)
-        self.image = img
+        self.image = deco_img
         self.rect = self.image.get_rect()
-        self.rect.midtop = (x + tile_size // 2, y + (tile_size - self.image.get_height()))
+        self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
 
     def update(self):
         self.rect.x += scroll_hor
@@ -354,11 +354,11 @@ class Decoration(pygame.sprite.Sprite):
 
 
 class Lava(pygame.sprite.Sprite):
-    def __init__(self, img, x, y):
+    def __init__(self, lava_img, xcoords, ycoords):
         pygame.sprite.Sprite.__init__(self)
-        self.image = img
+        self.image = lava_img
         self.rect = self.image.get_rect()
-        self.rect.midtop = (x + tile_size // 2, y + (tile_size - self.image.get_height()))
+        self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
 
     def update(self):
         self.rect.x += scroll_hor
@@ -366,12 +366,12 @@ class Lava(pygame.sprite.Sprite):
 
 
 class Item(pygame.sprite.Sprite):
-    def __init__(self, x, y, item_type):
+    def __init__(self, xcoords, ycoords, item_type):
         pygame.sprite.Sprite.__init__(self)
         self.item_type = item_type
         self.image = item_dict[self.item_type]
         self.rect = self.image.get_rect()
-        self.rect.midtop = (x + tile_size // 2, y + tile_size - self.image.get_height())
+        self.rect.midtop = (xcoords + tile_size // 2, ycoords + tile_size - self.image.get_height())
 
     def update(self):
         self.rect.x += scroll_hor
@@ -387,7 +387,7 @@ class Item(pygame.sprite.Sprite):
 
 
 class Arrow(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction):
+    def __init__(self, xcoords, ycoords, direction):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
         if direction > 0:
@@ -395,7 +395,7 @@ class Arrow(pygame.sprite.Sprite):
         else:
             self.image = pygame.transform.flip(arrow_img, True, False)
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.center = (xcoords, ycoords)
         self.direction = direction
 
     def update(self):
@@ -404,13 +404,13 @@ class Arrow(pygame.sprite.Sprite):
         self.rect.y += scroll_ver
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()
-        for tile in world.obstacle_list:
-            if tile[1].colliderect(self.rect):
+        for one_tile in world.obstacle_list:
+            if one_tile[1].colliderect(self.rect):
                 self.kill()
 
 
 class Spell(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction):
+    def __init__(self, xcoords, ycoords, direction):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 6
         if direction > 0:
@@ -418,7 +418,7 @@ class Spell(pygame.sprite.Sprite):
         else:
             self.image = pygame.transform.flip(spell_img, True, False)
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.center = (xcoords, ycoords)
         self.direction = direction
         self.lifetime = 60
 
@@ -431,8 +431,8 @@ class Spell(pygame.sprite.Sprite):
             self.kill()
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()
-        for tile in world.obstacle_list:
-            if tile[1].colliderect(self.rect):
+        for one_tile in world.obstacle_list:
+            if one_tile[1].colliderect(self.rect):
                 self.kill()
 
 
