@@ -97,8 +97,8 @@ def draw_bg():
     screen.blit(bg_img_list[current_world], (0, 0))
 
 
-def draw_text(text, font_type, color, xcoords, ycoords):
-    txt_img = font_type.render(text, True, color)
+def draw_text(text, fonttype, color, xcoords, ycoords):
+    txt_img = fonttype.render(text, True, color)
     screen.blit(txt_img, (xcoords, ycoords))
 
 

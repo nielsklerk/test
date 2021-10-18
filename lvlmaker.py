@@ -50,9 +50,9 @@ for tile in range(cols):
 font = pygame.font.SysFont(pygame.font.get_fonts()[41], 30)
 
 
-def draw_text(text, font, color, x, y):
-    img = font.render(text, True, color)
-    screen.blit(img, (x, y))
+def draw_text(text, fonttype, color, xcoords, ycoords):
+    txt_img = fonttype.render(text, True, color)
+    screen.blit(txt_img, (xcoords, ycoords))
 
 
 def draw_bg():
@@ -60,9 +60,9 @@ def draw_bg():
     image = pygame.transform.scale(pygame.image.load("img/dirt.png"), (screen_width, screen_height))
     width = screen_width
     height = screen_height
-    for x in range(3):
-        for y in range(3):
-            screen.blit(image, ((x * width) - scroll_hor, (y * height) - scroll_ver))
+    for xcoords in range(3):
+        for ycoords in range(3):
+            screen.blit(image, ((xcoords * width) - scroll_hor, (ycoords * height) - scroll_ver))
 
 
 def draw_grid():
@@ -75,26 +75,26 @@ def draw_grid():
 
 
 def draw_world():
-    for y, row in enumerate(world_data):
-        for x, tile in enumerate(row):
-            if tile >= 0:
-                screen.blit(img_list[tile], (x * tile_size - scroll_hor, y * tile_size - scroll_ver))
+    for ycoords, one_row in enumerate(world_data):
+        for xcoords, one_tile in enumerate(one_row):
+            if one_tile >= 0:
+                screen.blit(img_list[one_tile], (xcoords * tile_size - scroll_hor, ycoords * tile_size - scroll_ver))
 
 
 class Button:
-    def __init__(self, x, y, image):
+    def __init__(self, xcoords, ycoords, image):
         self.image = image
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = xcoords
+        self.rect.y = ycoords
         self.clicked = False
 
     def draw(self):
         action = False
 
-        pos = pygame.mouse.get_pos()
+        mouse_pos = pygame.mouse.get_pos()
 
-        if self.rect.collidepoint(pos):
+        if self.rect.collidepoint(mouse_pos):
             if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
                 action = True
                 self.clicked = True
