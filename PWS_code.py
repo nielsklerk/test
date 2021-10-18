@@ -43,7 +43,7 @@ scroll_ver = 0
 scroll_speed = 1
 total_hor_scroll = 0
 total_ver_scroll = 0
-
+"""
 # load music and sounds
 pygame.mixer.music.load("audio/sound.mp3")
 pygame.mixer.music.set_volume(0.5)
@@ -54,7 +54,7 @@ cast_fx = pygame.mixer.Sound("audio/cast.wav")
 cast_fx.set_volume(0.5)
 shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
 shoot_fx.set_volume(0.5)
-
+"""
 # images
 # button images
 start_img = pygame.image.load("img/New Piskel.png")
@@ -167,7 +167,7 @@ class Player(pygame.sprite.Sprite):
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
                 img = pygame.image.load(f'img/Player/{animation}/{i}.png')
-                img = pygame.transform.scale(img, (tile_size, tile_size))
+                img = pygame.transform.scale(img, ( 2 * img.get_width(), 2 * img.get_height()))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
 
@@ -213,7 +213,11 @@ class Player(pygame.sprite.Sprite):
 
         for tile in world.obstacle_list:
             if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
-                dx = 0
+                if self.direction > 0:
+                    self.rect.right = tile[1].left
+                elif self.direction < 0:
+                    self.rect.left = tile[1].right + 5
+
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = scroll_ver
@@ -248,6 +252,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= int(dy)
             scroll_ver = -self.vel_y
 
+        self.mask = pygame.mask.from_surface(self.image)
+
         return scroll_hor, scroll_ver
 
     def update_action(self, new_action):
@@ -281,7 +287,7 @@ class Player(pygame.sprite.Sprite):
             arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
             arrow_group.add(arrow)
-            shoot_fx.play()
+            # shoot_fx.play()
 
     def cast(self):
         if self.cast_cooldown == 0:
@@ -290,7 +296,7 @@ class Player(pygame.sprite.Sprite):
                           self.direction)
             spell_group.add(spell)
             self.mana -= 1
-            cast_fx.play()
+            # cast_fx.play()
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
