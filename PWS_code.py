@@ -18,7 +18,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
 tile_size = 64
-tile_types = 2
+tile_types = 3
 cols = 48
 rows = 27
 game_over = False
@@ -76,8 +76,8 @@ for x in range(tile_types):
     tile_img_list.append(img)
 
 # projectile images
-arrow_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-spell_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (50, 50))
+arrow_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (10, 10))
+spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
 
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
@@ -107,6 +107,7 @@ def reset_level():
     item_group.empty()
     decoration_group.empty()
     lava_group.empty()
+    exit_group.empty()
     data = []
     for one_row in range(rows):
         p = [-1] * cols
@@ -211,6 +212,11 @@ class Player(pygame.sprite.Sprite):
             self.in_air = True
         dy += self.vel_y
 
+        level_change = 0
+        for one_exit in world.exit_list:
+            if one_exit[1].colliderect(self.rect.x + dx, self.rect.y + dy, self.width, self.height):
+                level_change = one_exit[2]
+
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
@@ -252,7 +258,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
-        return d_scroll_hor, d_scroll_ver
+        return d_scroll_hor, d_scroll_ver, level_change
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -303,6 +309,7 @@ class Player(pygame.sprite.Sprite):
 class World:
     def __init__(self):
         self.obstacle_list = []
+        self.exit_list = []
         self.level_length = 0
         self.level_height = 0
 
@@ -330,7 +337,12 @@ class World:
                     elif one_tile == 16:
                         item = Item(xcoords * tile_size, ycoords * tile_size, "Health")
                         item_group.add(item)
-                    elif one_tile == 20:
+                    elif one_tile == 2:
+                        exit = Exit(img, xcoords * tile_size, ycoords * tile_size)
+                        tile_data = (image, img_rect, 1)
+                        self.exit_list.append(tile_data)
+                        exit_group.add(exit)
+
                         pass
         return player_character
 
@@ -339,6 +351,22 @@ class World:
             one_tile[1][0] += int(scroll_hor)
             one_tile[1][1] += int(scroll_ver)
             screen.blit(one_tile[0], one_tile[1])
+        for one_exit in self.exit_list:
+            one_exit[1][0] += int(scroll_hor)
+            one_exit[1][1] += int(scroll_ver)
+            screen.blit(one_exit[0], one_exit[1])
+
+
+class Exit(pygame.sprite.Sprite):
+    def __init__(self, exit_img, xcoords, ycoords,):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = exit_img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
+
+    def update(self):
+        self.rect.x += scroll_hor
+        self.rect.y += scroll_ver
 
 
 class Decoration(pygame.sprite.Sprite):
@@ -442,6 +470,7 @@ spell_group = pygame.sprite.Group()
 item_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width//2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width//2 - 130, screen_height // 2 + 50, exit_img)
@@ -481,11 +510,13 @@ while run:
         item_group.update()
         decoration_group.update()
         lava_group.update()
+        exit_group.update()
         arrow_group.draw(screen)
         spell_group.draw(screen)
         item_group.draw(screen)
         decoration_group.draw(screen)
         lava_group.draw(screen)
+        exit_group.draw(screen)
 
         if player.alive:
             if cast:
@@ -501,9 +532,20 @@ while run:
             else:
                 player.update_action(0)
 
-            scroll_hor, scroll_ver = player.move(moving_left, moving_right)
+            scroll_hor, scroll_ver, level_change = player.move(moving_left, moving_right)
             total_hor_scroll -= scroll_hor
             total_ver_scroll -= scroll_ver
+            if level_change != 0:
+                level += level_change
+                level_change = 0
+                with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
+                    reader = csv.reader(csvfile, delimiter=',')
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            world_data[x][y] = int(tile)
+                world = World()
+                player = world.process_data(world_data)
+                reset_level()
 
         else:
             scroll_ver = 0
@@ -518,7 +560,6 @@ while run:
                     for x, row in enumerate(reader):
                         for y, tile in enumerate(row):
                             world_data[x][y] = int(tile)
-
                 world = World()
                 player = world.process_data(world_data)
 
