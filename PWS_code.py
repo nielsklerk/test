@@ -327,13 +327,13 @@ class World:
                     elif xcoords > 31:
                         self.hor_off = -32 * tile_size
                     else:
-                        self.hor_off = -1 * int(xcoords) * tile_size + 5 * tile_size
+                        self.hor_off = -1 * xcoords * tile_size + 5 * tile_size
                     if ycoords < 9:
                         self.ver_off = 0
                     elif ycoords > 17:
                         self.ver_off = -16 * tile_size
                     else:
-                        self.ver_off = -1 * int(ycoords) * tile_size + 2 * tile_size
+                        self.ver_off = -1 * ycoords * tile_size + 2 * tile_size
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
                 if one_tile >= 0:
@@ -492,8 +492,8 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
 
 world = World()
 player = world.process_data(world_data)
-total_hor_scroll = -1 * int(world.hor_off)
-total_ver_scroll = -1 * int(world.ver_off)
+total_hor_scroll = -world.hor_off
+total_ver_scroll = -world.ver_off
 
 run = True
 while run:
@@ -550,8 +550,8 @@ while run:
                             world_data[x][y] = int(tile)
                 world = World()
                 player = world.process_data(world_data)
-                total_hor_scroll = -1 * int(world.hor_off)
-                total_ver_scroll = -1 * int(world.ver_off)
+                total_hor_scroll = -world.hor_off
+                total_ver_scroll = -world.ver_off
                 reset_level()
 
         else:
@@ -569,8 +569,8 @@ while run:
                             world_data[x][y] = int(tile)
                 world = World()
                 player = world.process_data(world_data)
-                total_hor_scroll = -1 * int(world.hor_off)
-                total_ver_scroll = -1 * int(world.ver_off)
+                total_hor_scroll = -world.hor_off
+                total_ver_scroll = -world.ver_off
 
     else:
         screen.fill((50, 50, 50))
