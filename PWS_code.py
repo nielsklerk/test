@@ -26,6 +26,8 @@ level = 0
 current_world = 0
 world_types = 1
 game_started = False
+hor_offset = 0
+ver_offset = 0
 
 gravity = 0.75
 
@@ -107,7 +109,6 @@ def reset_level():
     item_group.empty()
     decoration_group.empty()
     lava_group.empty()
-    exit_group.empty()
     data = []
     for one_row in range(rows):
         p = [-1] * cols
@@ -168,7 +169,7 @@ class Player(pygame.sprite.Sprite):
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
                 player_img = pygame.image.load(f'img/Player/{animation}/{i}.png')
-                player_img = pygame.transform.scale(player_img, (40, 64))
+                player_img = pygame.transform.scale(player_img, (tile_size, tile_size))
                 temp_list.append(player_img)
             self.animation_list.append(temp_list)
 
@@ -312,22 +313,40 @@ class World:
         self.exit_list = []
         self.level_length = 0
         self.level_height = 0
+        self.hor_off = 0
+        self.ver_off = 0
 
     def process_data(self, data):
         self.level_length = len(data[0])
         self.level_height = len(data)
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
+                if one_tile == 1:
+                    if xcoords < 16:
+                        self.hor_off = 0
+                    elif xcoords > 31:
+                        self.hor_off = -32 * tile_size
+                    else:
+                        self.hor_off = -1 * int(xcoords) * tile_size + 5 * tile_size
+                    if ycoords < 9:
+                        self.ver_off = 0
+                    elif ycoords > 17:
+                        self.ver_off = -16 * tile_size
+                    else:
+                        self.ver_off = -1 * int(ycoords) * tile_size + 2 * tile_size
+        for ycoords, one_row in enumerate(data):
+            for xcoords, one_tile in enumerate(one_row):
                 if one_tile >= 0:
                     image = tile_img_list[one_tile]
                     img_rect = image.get_rect()
-                    img_rect.x = xcoords * tile_size
-                    img_rect.y = ycoords * tile_size
+                    img_rect.x = xcoords * tile_size + self.hor_off
+                    img_rect.y = ycoords * tile_size + self.ver_off
                     tile_data = (image, img_rect)
-                    if one_tile == 0:
+                    if one_tile == 1:
+                        player_character = Player(xcoords * tile_size + self.hor_off,
+                                                  ycoords * tile_size + self.ver_off, 5)
+                    elif one_tile == 0:
                         self.obstacle_list.append(tile_data)
-                    elif one_tile == 1:
-                        player_character = Player(xcoords * tile_size, ycoords * tile_size, 5)
                     elif 11 <= one_tile <= 13:
                         lava = Lava(image, xcoords * tile_size, ycoords * tile_size)
                         lava_group.add(lava)
@@ -338,12 +357,8 @@ class World:
                         item = Item(xcoords * tile_size, ycoords * tile_size, "Health")
                         item_group.add(item)
                     elif one_tile == 2:
-                        exit = Exit(img, xcoords * tile_size, ycoords * tile_size)
                         tile_data = (image, img_rect, 1)
                         self.exit_list.append(tile_data)
-                        exit_group.add(exit)
-
-                        pass
         return player_character
 
     def draw(self):
@@ -355,18 +370,6 @@ class World:
             one_exit[1][0] += int(scroll_hor)
             one_exit[1][1] += int(scroll_ver)
             screen.blit(one_exit[0], one_exit[1])
-
-
-class Exit(pygame.sprite.Sprite):
-    def __init__(self, exit_img, xcoords, ycoords,):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = exit_img
-        self.rect = self.image.get_rect()
-        self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
-
-    def update(self):
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
 
 
 class Decoration(pygame.sprite.Sprite):
@@ -470,7 +473,6 @@ spell_group = pygame.sprite.Group()
 item_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
-exit_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width//2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width//2 - 130, screen_height // 2 + 50, exit_img)
@@ -490,6 +492,8 @@ with open(f"level_data/level_data{level}.csv", newline="") as csvfile:
 
 world = World()
 player = world.process_data(world_data)
+total_hor_scroll = -1 * int(world.hor_off)
+total_ver_scroll = -1 * int(world.ver_off)
 
 run = True
 while run:
@@ -510,14 +514,15 @@ while run:
         item_group.update()
         decoration_group.update()
         lava_group.update()
-        exit_group.update()
         arrow_group.draw(screen)
         spell_group.draw(screen)
         item_group.draw(screen)
         decoration_group.draw(screen)
         lava_group.draw(screen)
-        exit_group.draw(screen)
 
+        scroll_hor, scroll_ver, level_change = player.move(moving_left, moving_right)
+        total_hor_scroll -= scroll_hor
+        total_ver_scroll -= scroll_ver
         if player.alive:
             if cast:
                 player.cast()
@@ -532,12 +537,12 @@ while run:
             else:
                 player.update_action(0)
 
-            scroll_hor, scroll_ver, level_change = player.move(moving_left, moving_right)
-            total_hor_scroll -= scroll_hor
-            total_ver_scroll -= scroll_ver
             if level_change != 0:
+                total_hor_scroll = 0
+                total_ver_scroll = 0
                 level += level_change
                 level_change = 0
+                world_data = reset_level()
                 with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
                     reader = csv.reader(csvfile, delimiter=',')
                     for x, row in enumerate(reader):
@@ -545,6 +550,8 @@ while run:
                             world_data[x][y] = int(tile)
                 world = World()
                 player = world.process_data(world_data)
+                total_hor_scroll = -1 * int(world.hor_off)
+                total_ver_scroll = -1 * int(world.ver_off)
                 reset_level()
 
         else:
@@ -562,6 +569,8 @@ while run:
                             world_data[x][y] = int(tile)
                 world = World()
                 player = world.process_data(world_data)
+                total_hor_scroll = -1 * int(world.hor_off)
+                total_ver_scroll = -1 * int(world.ver_off)
 
     else:
         screen.fill((50, 50, 50))
