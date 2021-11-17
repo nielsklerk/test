@@ -611,6 +611,7 @@ while run:
                 shoot = False
             if event.key == pygame.K_s:
                 cast = False
+
     clock.tick(fps)
     pygame.display.update()
 
