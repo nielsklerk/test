@@ -215,9 +215,11 @@ class Player(pygame.sprite.Sprite):
         dy += self.vel_y
 
         level_change = 0
+        previous_level = None
         for one_exit in world.exit_list:
             if one_exit[1].colliderect(self.rect.x + dx, self.rect.y + dy, self.width, self.height):
                 level_change = one_exit[2]
+                previous_level = one_exit[3]
 
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
@@ -260,7 +262,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
-        return d_scroll_hor, d_scroll_ver, level_change
+        return d_scroll_hor, d_scroll_ver, level_change, previous_level
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -346,6 +348,30 @@ class World:
                     if one_tile == 0:
                         player_character = Player(xcoords * tile_size + self.hor_off,
                                                   ycoords * tile_size + self.ver_off, 5)
+                    elif one_tile == 1:
+                        tile_data = (image, img_rect, 1, "Down")
+                        self.exit_list.append(tile_data)
+                        if previous_level == "Up":
+                            player_character = Player(xcoords * tile_size + self.hor_off,
+                                                      ycoords * tile_size + self.ver_off, 5)
+                    elif one_tile <= 2:
+                        tile_data = (image, img_rect, 1, "Left")
+                        self.exit_list.append(tile_data)
+                        if previous_level == "Right":
+                            player_character = Player(xcoords * tile_size + self.hor_off,
+                                                      ycoords * tile_size + self.ver_off, 5)
+                    elif one_tile <= 3:
+                        tile_data = (image, img_rect, 1, "Up")
+                        self.exit_list.append(tile_data)
+                        if previous_level == "Down":
+                            player_character = Player(xcoords * tile_size + self.hor_off,
+                                                      ycoords * tile_size + self.ver_off, 5)
+                    elif one_tile <= 4:
+                        tile_data = (image, img_rect, 1, "Right")
+                        self.exit_list.append(tile_data)
+                        if previous_level == "Left":
+                            player_character = Player(xcoords * tile_size + self.hor_off,
+                                                      ycoords * tile_size + self.ver_off, 5)
                     elif 5 <= one_tile <= 6:
                         self.obstacle_list.append(tile_data)
                     elif 11 <= one_tile <= 13:
@@ -357,9 +383,6 @@ class World:
                     elif one_tile == 16:
                         item = Item(xcoords * tile_size, ycoords * tile_size, "Health")
                         item_group.add(item)
-                    elif 1 <= one_tile <= 4:
-                        tile_data = (image, img_rect, 1)
-                        self.exit_list.append(tile_data)
         return player_character
 
     def draw(self):
@@ -521,7 +544,7 @@ while run:
         decoration_group.draw(screen)
         lava_group.draw(screen)
 
-        scroll_hor, scroll_ver, level_change = player.move(moving_left, moving_right)
+        scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
         total_ver_scroll -= scroll_ver
         if player.alive:
