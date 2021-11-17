@@ -15,7 +15,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tile_types = 3
+tile_types = 6
 current_tile = 0
 
 scroll_left = False
@@ -55,9 +55,9 @@ def draw_text(text, fonttype, color, xcoords, ycoords):
     screen.blit(txt_img, (xcoords, ycoords))
 
 
-def draw_bg():
+def draw_bg(world):
     screen.fill((0, 0, 0))
-    image = pygame.transform.scale(pygame.image.load("img/dirt.png"), (screen_width, screen_height))
+    image = pygame.transform.scale(pygame.image.load(f"img/World/{world}.png"), (screen_width, screen_height))
     width = screen_width
     height = screen_height
     for xcoords in range(3):
@@ -125,12 +125,14 @@ for i in range(len(img_list)):
 run = True
 while run:
     clock.tick(fps)
-    draw_bg()
+    if 0 <= level <= 6:
+        draw_bg(0)
+
     draw_world()
     draw_grid()
 
-    pygame.draw.rect(screen, (100, 200, 100), (screen_width, 0, side_margin, screen_height))
-    pygame.draw.rect(screen, (100, 200, 100), (0, screen_height, screen_width + side_margin, lower_margin))
+    pygame.draw.rect(screen, (100, 100, 100), (screen_width, 0, side_margin, screen_height))
+    pygame.draw.rect(screen, (100, 100, 100), (0, screen_height, screen_width + side_margin, lower_margin))
     draw_text(f"level: {level}", font, (255, 255, 255), 10, screen_height + lower_margin - 90)
     draw_text("W or S to chance level", font, (255, 255, 255), 10, screen_height + lower_margin - 50)
 

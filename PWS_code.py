@@ -18,10 +18,11 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
 tile_size = 64
-tile_types = 3
+tile_types = 6
 cols = 48
 rows = 27
 game_over = False
+previous_level = None
 level = 0
 current_world = 0
 world_types = 1
@@ -321,7 +322,7 @@ class World:
         self.level_height = len(data)
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
-                if one_tile == 1:
+                if one_tile == 0:
                     if xcoords < 16:
                         self.hor_off = 0
                     elif xcoords > 31:
@@ -342,10 +343,10 @@ class World:
                     img_rect.x = xcoords * tile_size + self.hor_off
                     img_rect.y = ycoords * tile_size + self.ver_off
                     tile_data = (image, img_rect)
-                    if one_tile == 1:
+                    if one_tile == 0:
                         player_character = Player(xcoords * tile_size + self.hor_off,
                                                   ycoords * tile_size + self.ver_off, 5)
-                    elif one_tile == 0:
+                    elif 5 <= one_tile <= 6:
                         self.obstacle_list.append(tile_data)
                     elif 11 <= one_tile <= 13:
                         lava = Lava(image, xcoords * tile_size, ycoords * tile_size)
@@ -356,7 +357,7 @@ class World:
                     elif one_tile == 16:
                         item = Item(xcoords * tile_size, ycoords * tile_size, "Health")
                         item_group.add(item)
-                    elif one_tile == 2:
+                    elif 1 <= one_tile <= 4:
                         tile_data = (image, img_rect, 1)
                         self.exit_list.append(tile_data)
         return player_character
