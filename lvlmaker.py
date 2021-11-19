@@ -43,9 +43,6 @@ for row in range(rows):
     r = [-1] * cols
     world_data.append(r)
 
-for tile in range(cols):
-    world_data[rows - 1][tile] = 0
-
 font = pygame.font.SysFont(pygame.font.get_fonts()[41], 30)
 
 

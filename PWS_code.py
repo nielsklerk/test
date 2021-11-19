@@ -171,7 +171,7 @@ class Player(pygame.sprite.Sprite):
             num_of_frames = len(os.listdir(f'img/Player/{animation}'))
             for i in range(num_of_frames):
                 player_img = pygame.image.load(f'img/Player/{animation}/{i}.png')
-                player_img = pygame.transform.scale(player_img, (tile_size, tile_size))
+                player_img = pygame.transform.scale(player_img, (tile_size - 1, tile_size - 1))
                 temp_list.append(player_img)
             self.animation_list.append(temp_list)
 
@@ -327,13 +327,13 @@ class World:
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
                 if one_tile == 0:
-                    if xcoords < 16:
+                    if xcoords < 15:
                         self.hor_off = 0
                     elif xcoords > 31:
                         self.hor_off = -32 * tile_size
                     else:
                         self.hor_off = -1 * xcoords * tile_size + 5 * tile_size
-                    if ycoords < 9:
+                    if ycoords < 8:
                         self.ver_off = 0
                     elif ycoords > 17:
                         self.ver_off = -16 * tile_size
@@ -346,7 +346,7 @@ class World:
                         self.hor_off = -32 * tile_size
                     else:
                         self.hor_off = -1 * xcoords * tile_size + 5 * tile_size
-                    if ycoords < 9:
+                    if ycoords < 8:
                         self.ver_off = 0
                     elif ycoords > 17:
                         self.ver_off = -16 * tile_size
@@ -359,7 +359,7 @@ class World:
                         self.hor_off = -32 * tile_size
                     else:
                         self.hor_off = -1 * xcoords * tile_size + 5 * tile_size
-                    if ycoords < 9:
+                    if ycoords < 8:
                         self.ver_off = 0
                     elif ycoords > 17:
                         self.ver_off = -16 * tile_size
@@ -372,7 +372,7 @@ class World:
                         self.hor_off = -32 * tile_size
                     else:
                         self.hor_off = -1 * xcoords * tile_size + 5 * tile_size
-                    if ycoords < 9:
+                    if ycoords < 8:
                         self.ver_off = 0
                     elif ycoords > 17:
                         self.ver_off = -16 * tile_size
@@ -385,7 +385,7 @@ class World:
                         self.hor_off = -32 * tile_size
                     else:
                         self.hor_off = -1 * xcoords * tile_size + 5 * tile_size
-                    if ycoords < 9:
+                    if ycoords < 8:
                         self.ver_off = 0
                     elif ycoords > 17:
                         self.ver_off = -16 * tile_size
@@ -465,8 +465,8 @@ class Exit(pygame.sprite.Sprite):
         self.level_change = lvl_change
 
     def update(self):
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
 
 
 class Decoration(pygame.sprite.Sprite):
@@ -477,8 +477,8 @@ class Decoration(pygame.sprite.Sprite):
         self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
 
     def update(self):
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
 
 
 class Lava(pygame.sprite.Sprite):
@@ -489,8 +489,8 @@ class Lava(pygame.sprite.Sprite):
         self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
 
     def update(self):
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
 
 
 class Item(pygame.sprite.Sprite):
@@ -502,8 +502,8 @@ class Item(pygame.sprite.Sprite):
         self.rect.midtop = (xcoords + tile_size // 2, ycoords + tile_size - self.image.get_height())
 
     def update(self):
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
         if pygame.sprite.collide_rect(self, player):
             if self.item_type == "Health":
                 player.health += 25
@@ -527,9 +527,9 @@ class Arrow(pygame.sprite.Sprite):
         self.direction = direction
 
     def update(self):
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
         self.rect.x += self.direction * self.speed
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()
         for one_tile in world.obstacle_list:
@@ -551,9 +551,9 @@ class Spell(pygame.sprite.Sprite):
         self.lifetime = 60
 
     def update(self):
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
         self.rect.x += self.direction * self.speed
-        self.rect.x += scroll_hor
-        self.rect.y += scroll_ver
         self.lifetime -= 1
         if self.lifetime <= 0:
             self.kill()
@@ -596,6 +596,20 @@ total_ver_scroll = -world.ver_off
 run = True
 while run:
     if game_started:
+        if 0 <= level <= 6:
+            current_world = 0
+        elif 7 <= level <= 14:
+            current_world = 1
+        elif 15 <= level <= 26:
+            current_world = 2
+        elif 27 <= level <= 37:
+            current_world = 3
+        elif 38 <= level <= 45:
+            current_world = 4
+        elif 46 <= level <= 52:
+            current_world = 5
+        else:
+            current_world = 6
         draw_bg()
         world.draw()
         for x in range(player.max_health):
