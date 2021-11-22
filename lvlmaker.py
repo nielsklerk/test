@@ -15,7 +15,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tile_types = 7
+tile_types = 27
 current_tile = 0
 
 scroll_left = False
@@ -33,8 +33,8 @@ for x in range(tile_types):
     img = pygame.transform.scale(img, (tile_size, tile_size))
     img_list.append(img)
 
-save_img = pygame.image.load(f"img/New Piskel.png")
-load_img = pygame.image.load(f"img/New Piskel.png")
+save_img = pygame.image.load(f"img/Button/Save.png")
+load_img = pygame.image.load(f"img/Button/Load.png")
 screen = pygame.display.set_mode((side_margin + screen_width, lower_margin + screen_height))
 pygame.display.set_caption("level editor")
 
@@ -110,10 +110,10 @@ button_list = []
 button_col = 0
 button_row = 0
 for i in range(len(img_list)):
-    tile_button = Button(screen_width + (75 * button_col) + 50, 75 * button_row + 50, img_list[i])
+    tile_button = Button(screen_width + (30 * button_col) + 5, 30 * button_row + 10, pygame.transform.scale(img_list[i], (20, 20)))
     button_list.append(tile_button)
     button_col += 1
-    if button_col == 3:
+    if button_col == 10:
         button_row += 1
         button_col = 0
 
