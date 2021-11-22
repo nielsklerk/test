@@ -34,7 +34,9 @@ for x in range(tile_types):
     img_list.append(img)
 
 save_img = pygame.image.load(f"img/Button/Save.png")
+save_img = pygame.transform.scale(save_img, (2 * save_img.get_width(), 2 * save_img.get_height()))
 load_img = pygame.image.load(f"img/Button/Load.png")
+load_img = pygame.transform.scale(load_img, (2 * load_img.get_width(), 2 * load_img.get_height()))
 screen = pygame.display.set_mode((side_margin + screen_width, lower_margin + screen_height))
 pygame.display.set_caption("level editor")
 
@@ -103,8 +105,8 @@ class Button:
         return action
 
 
-save_button = Button(screen_width // 2, screen_height + lower_margin - 50, save_img)
-load_button = Button(screen_width // 2 + 200, screen_height + lower_margin - 50, load_img)
+save_button = Button(screen_width // 2, screen_height + lower_margin - 80, save_img)
+load_button = Button(screen_width // 2 + 200, screen_height + lower_margin - 80, load_img)
 
 button_list = []
 button_col = 0
