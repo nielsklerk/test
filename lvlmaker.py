@@ -112,7 +112,8 @@ button_list = []
 button_col = 0
 button_row = 0
 for i in range(len(img_list)):
-    tile_button = Button(screen_width + (30 * button_col) + 5, 30 * button_row + 10, pygame.transform.scale(img_list[i], (20, 20)))
+    tile_button = Button(screen_width + (30 * button_col) + 5, 30 * button_row + 10, pygame.transform.scale(img_list[i],
+                                                                                                            (20, 20)))
     button_list.append(tile_button)
     button_col += 1
     if button_col == 10:
