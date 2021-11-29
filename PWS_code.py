@@ -158,7 +158,7 @@ class Player(pygame.sprite.Sprite):
         self.alive = True
         self.health = 90
         self.max_health = 100
-        self.speed = 10
+        self.speed = 5
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
         self.direction = 1
