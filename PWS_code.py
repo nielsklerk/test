@@ -158,7 +158,7 @@ class Player(pygame.sprite.Sprite):
         self.alive = True
         self.health = 90
         self.max_health = 100
-        self.speed = 5
+        self.speed = 10
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
         self.direction = 1
@@ -214,16 +214,23 @@ class Player(pygame.sprite.Sprite):
             dx = self.speed
             self.flip = False
             self.direction = 1
-        if self.jump or self.touching_wall and not self.in_air:
+        if self.jump and not self.in_air:
             self.vel_y = -20
             self.jump = False
             self.in_air = True
 
-        self.vel_y += gravity
-        if self.vel_y > 10:
-            self.vel_y = 10
-            self.in_air = True
-        dy += self.vel_y
+        if self.touching_wall and self.vel_y > 0:
+            self.vel_y += 0.5 * gravity
+            if self.vel_y > 5:
+                self.vel_y = 5
+                self.in_air = True
+            dy += self.vel_y
+        else:
+            self.vel_y += gravity
+            if self.vel_y > 10:
+                self.vel_y = 10
+                self.in_air = True
+            dy += self.vel_y
 
         level_change = 0
         previous_level = 0
@@ -236,12 +243,24 @@ class Player(pygame.sprite.Sprite):
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
-                self.touching_wall = True
                 if self.direction > 0:
                     self.rect.right = one_tile[1].left - 1
+                    self.touching_wall = True
                 elif self.direction < 0:
                     self.rect.left = one_tile[1].right + 1
-            self.touching_wall= False
+                    self.touching_wall = True
+                else:
+                    self.touching_wall = False
+                if self.jump and self.touching_wall:
+                    self.vel_y = -10
+                    self.direction *= -1
+                    dx += self.speed * self.direction * 2
+                    moving_left_direction = not moving_left_direction
+                    moving_right_direction = not moving_right_direction
+            else:
+                self.touching_wall = False
+        print(self.touching_wall)
+        for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = d_scroll_ver
@@ -422,7 +441,7 @@ class World:
                     if xcoords - 2 <= 11:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 11) * tile_size
+                        self.hor_off = -(xcoords - 7) * tile_size
                     if ycoords <= 7:
                         self.ver_off = 0
                     else:
