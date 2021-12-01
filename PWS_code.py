@@ -164,6 +164,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = 1
         self.jump = False
         self.in_air = True
+        self.touching_wall = False
         self.flip = False
         self.vel_y = 0
         self.animation_list = []
@@ -213,7 +214,7 @@ class Player(pygame.sprite.Sprite):
             dx = self.speed
             self.flip = False
             self.direction = 1
-        if self.jump and not self.in_air:
+        if self.jump or self.touching_wall and not self.in_air:
             self.vel_y = -20
             self.jump = False
             self.in_air = True
@@ -235,10 +236,12 @@ class Player(pygame.sprite.Sprite):
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
+                self.touching_wall = True
                 if self.direction > 0:
                     self.rect.right = one_tile[1].left - 1
                 elif self.direction < 0:
                     self.rect.left = one_tile[1].right + 1
+            self.touching_wall= False
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = d_scroll_ver
