@@ -65,7 +65,7 @@ shoot_fx.set_volume(0.5)
 start_img = pygame.image.load("img/New Piskel.png")
 exit_img = pygame.image.load("img/New Piskel.png")
 respawn_img = pygame.image.load("img/New Piskel.png")
-map_img = pygame.image.load("img/")
+map_img = pygame.image.load("img/New Piskel.png")
 
 # background images
 bg_img_list = []
