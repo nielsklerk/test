@@ -38,6 +38,7 @@ moving_right = False
 shoot = False
 cast = False
 doublejump_acquired = False
+map = False
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
@@ -64,6 +65,7 @@ shoot_fx.set_volume(0.5)
 start_img = pygame.image.load("img/New Piskel.png")
 exit_img = pygame.image.load("img/New Piskel.png")
 respawn_img = pygame.image.load("img/New Piskel.png")
+map_img = pygame.image.load("img/")
 
 # background images
 bg_img_list = []
@@ -841,12 +843,9 @@ while run:
             current_world = 2
         elif 27 <= level <= 37:
             current_world = 3
-        elif 38 <= level <= 45:
+        elif 38 <= level <= 48:
             current_world = 4
-        elif 46 <= level <= 52:
-            current_world = 5
-        else:
-            current_world = 6
+
         draw_bg()
         world.draw()
         for x in range(player.max_health):
@@ -926,6 +925,9 @@ while run:
                 total_ver_scroll = -world.ver_off
             elif exit_btn.draw():
                 run = False
+    elif map:
+        screen.blit(map_img, (0, 0))
+
 
     else:
         screen.fill((50, 50, 50))
@@ -953,6 +955,8 @@ while run:
                 shoot = True
             if event.key == pygame.K_s:
                 cast = True
+            if event.key == pygame.K_s:
+                map = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -965,6 +969,8 @@ while run:
                 shoot = False
             if event.key == pygame.K_s:
                 cast = False
+            if event.key == pygame.K_s:
+                map = False
 
     clock.tick(fps)
     pygame.display.update()
