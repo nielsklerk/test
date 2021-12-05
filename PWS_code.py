@@ -167,6 +167,7 @@ class Player(pygame.sprite.Sprite):
         self.amount_jumps = 2
         self.in_air = True
         self.touching_wall = False
+        self.slide_factor = 0.5
         self.flip = False
         self.vel_y = 0
         self.animation_list = []
@@ -209,34 +210,41 @@ class Player(pygame.sprite.Sprite):
         d_scroll_ver = 0
 
         if moving_left_direction:
-            dx = -self.speed
-            self.flip = True
-            self.direction = -1
-        if moving_right_direction:
-            dx = self.speed
-            self.flip = False
-            self.direction = 1
-        if self.jump and not self.amount_jumps <= 0:
-            self.vel_y = -20
-            self.jump = False
-            self.in_air = True
-            if doublejump_acquired:
-                self.amount_jumps -= 1
+            if self.touching_wall:
+                dx = 0
             else:
-                self.amount_jumps -= 2
+                dx = -self.speed
+                self.flip = True
+                self.direction = -1
+        if moving_right_direction:
+            if self.touching_wall:
+                dx = 0
+            else:
+                dx = self.speed
+                self.flip = False
+                self.direction = 1
+        if self.jump and not self.amount_jumps <= 0:
+            if not self.touching_wall:
+                self.vel_y = -20
+                self.jump = False
+                self.in_air = True
+                if doublejump_acquired:
+                    self.amount_jumps -= 1
+                else:
+                    self.amount_jumps -= 2
 
-        if self.touching_wall and self.vel_y < 0:
-            self.vel_y += 0.5 * gravity
-            if self.vel_y > 5:
-                self.vel_y = 5
-                self.in_air = True
-            dy += self.vel_y
+        if self.touching_wall:
+            self.slide_factor = 0.5
         else:
-            self.vel_y += gravity
-            if self.vel_y > 10:
-                self.vel_y = 10
-                self.in_air = True
-            dy += self.vel_y
+            self.slide_factor = 1
+
+        self.touching_wall = False
+
+        self.vel_y += gravity
+        if self.vel_y > 10:
+            self.vel_y = 10
+            self.in_air = True
+        dy += self.vel_y * self.slide_factor
 
         level_change = 0
         previous_level = 0
@@ -249,22 +257,13 @@ class Player(pygame.sprite.Sprite):
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
+                self.touching_wall = True
                 if self.direction > 0:
                     self.rect.right = one_tile[1].left - 1
-                    self.touching_wall = True
                     self.amount_jumps = 2
                 elif self.direction < 0:
                     self.rect.left = one_tile[1].right + 1
-                    self.touching_wall = True
                     self.amount_jumps = 2
-                else:
-                    self.touching_wall = False
-                if self.jump and self.touching_wall:
-                    self.vel_y = -20
-                    self.direction *= -1
-                    dx += self.speed * self.direction * 2
-            else:
-                self.touching_wall = False
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
