@@ -37,6 +37,7 @@ moving_left = False
 moving_right = False
 shoot = False
 cast = False
+doublejump_acquired = False
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
@@ -83,10 +84,10 @@ arrow_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"
 spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
 
 # item images
-health_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-max_health_img = pygame.transform.scale(pygame.image.load("img/dirt.png"), (10, 10))
+health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
+max_health_img = pygame.transform.scale(pygame.image.load("img/Item/max_heart.png"), (20, 20))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-money_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (10, 10))
 item_dict = {
     "Health": health_img,
     "Mana": mana_img,
@@ -156,13 +157,14 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.health = 90
-        self.max_health = 100
+        self.health = 9
+        self.max_health = 10
         self.speed = 10
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
         self.direction = 1
         self.jump = False
+        self.amount_jumps = 2
         self.in_air = True
         self.touching_wall = False
         self.flip = False
@@ -214,12 +216,16 @@ class Player(pygame.sprite.Sprite):
             dx = self.speed
             self.flip = False
             self.direction = 1
-        if self.jump and not self.in_air:
+        if self.jump and not self.amount_jumps <= 0:
             self.vel_y = -20
             self.jump = False
             self.in_air = True
+            if doublejump_acquired:
+                self.amount_jumps -= 1
+            else:
+                self.amount_jumps -= 2
 
-        if self.touching_wall and self.vel_y > 0:
+        if self.touching_wall and self.vel_y < 0:
             self.vel_y += 0.5 * gravity
             if self.vel_y > 5:
                 self.vel_y = 5
@@ -246,20 +252,19 @@ class Player(pygame.sprite.Sprite):
                 if self.direction > 0:
                     self.rect.right = one_tile[1].left - 1
                     self.touching_wall = True
+                    self.amount_jumps = 2
                 elif self.direction < 0:
                     self.rect.left = one_tile[1].right + 1
                     self.touching_wall = True
+                    self.amount_jumps = 2
                 else:
                     self.touching_wall = False
                 if self.jump and self.touching_wall:
-                    self.vel_y = -10
+                    self.vel_y = -20
                     self.direction *= -1
                     dx += self.speed * self.direction * 2
-                    moving_left_direction = not moving_left_direction
-                    moving_right_direction = not moving_right_direction
             else:
                 self.touching_wall = False
-        print(self.touching_wall)
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
@@ -268,6 +273,7 @@ class Player(pygame.sprite.Sprite):
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.in_air = False
+                    self.amount_jumps = 2
                     dy = one_tile[1].top - self.rect.bottom
 
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
@@ -438,40 +444,40 @@ class World:
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
                 if one_tile == 0:
-                    if xcoords - 2 <= 11:
+                    if xcoords + 2 < 16:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 7) * tile_size
+                        self.hor_off = -(xcoords - 12) * tile_size
                     if ycoords <= 7:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15)\
                         and previous_level == "Up":
-                    if xcoords - 2 <= 11:
+                    if xcoords + 2 < 7:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 11) * tile_size
+                        self.hor_off = -(xcoords - 13) * tile_size
                     if ycoords <= 7:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 17 or one_tile == 19 or one_tile == 21
                         or one_tile == 23 or one_tile == 25) and previous_level == "Right":
-                    if xcoords - 2 <= 11:
+                    if xcoords + 2 < 7:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 11) * tile_size
+                        self.hor_off = -(xcoords - 13) * tile_size
                     if ycoords <= 7:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16)\
                         and previous_level == "Down":
-                    if xcoords - 2 <= 11:
+                    if xcoords + 2 < 7:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 11) * tile_size
+                        self.hor_off = -(xcoords - 13) * tile_size
                     if ycoords <= 7:
                         self.ver_off = 0
                     else:
@@ -844,12 +850,10 @@ while run:
             current_world = 6
         draw_bg()
         world.draw()
-        """"
         for x in range(player.max_health):
-            screen.blit(max_health_img, (90 + (x * 2), 40))
+            screen.blit(max_health_img, (90 + (x * 20), 40))
         for x in range(player.health):
-            screen.blit(health_img, (90 + (x * 2), 40))
-        """
+            screen.blit(health_img, (90 + (x * 20), 40))
         player.update()
         player.draw()
 
