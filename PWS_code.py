@@ -38,7 +38,7 @@ moving_right = False
 shoot = False
 cast = False
 doublejump_acquired = False
-map = False
+map_menu = False
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
@@ -169,6 +169,7 @@ class Player(pygame.sprite.Sprite):
         self.amount_jumps = 2
         self.in_air = True
         self.touching_wall = False
+        self.wall_jump = True
         self.slide_factor = 0.5
         self.flip = False
         self.vel_y = 0
@@ -176,6 +177,7 @@ class Player(pygame.sprite.Sprite):
         self.index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
+        self.wall_jump_cooldown = 60
 
         # load in images for player
         animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death']
@@ -210,21 +212,23 @@ class Player(pygame.sprite.Sprite):
         dy = 0
         d_scroll_hor = 0
         d_scroll_ver = 0
+        level_change = 0
+        previous_level = 0
 
         if moving_left_direction:
-            if self.touching_wall:
-                dx = 0
-            else:
-                dx = -self.speed
-                self.flip = True
-                self.direction = -1
+            dx = -self.speed
+            self.flip = True
+            self.direction = -1
         if moving_right_direction:
-            if self.touching_wall:
-                dx = 0
-            else:
-                dx = self.speed
-                self.flip = False
-                self.direction = 1
+            dx = self.speed
+            self.flip = False
+            self.direction = 1
+        if not self.wall_jump:
+            self.wall_jump_cooldown -= 1
+        if self.wall_jump_cooldown <= 0:
+            self.wall_jump_cooldown = 60
+            self.wall_jump = True
+
         if self.jump and not self.amount_jumps <= 0:
             if not self.touching_wall:
                 self.vel_y = -20
@@ -234,13 +238,20 @@ class Player(pygame.sprite.Sprite):
                     self.amount_jumps -= 1
                 else:
                     self.amount_jumps -= 2
+            else:
+                if self.wall_jump:
+                    self.vel_y = -20
+                    self.jump = False
+                    self.wall_jump = False
+                    if doublejump_acquired:
+                        self.amount_jumps -= 1
+                    else:
+                        self.amount_jumps -= 2
 
         if self.touching_wall:
             self.slide_factor = 0.5
         else:
             self.slide_factor = 1
-
-        self.touching_wall = False
 
         self.vel_y += gravity
         if self.vel_y > 10:
@@ -248,8 +259,6 @@ class Player(pygame.sprite.Sprite):
             self.in_air = True
         dy += self.vel_y * self.slide_factor
 
-        level_change = 0
-        previous_level = 0
         if pygame.sprite.spritecollide(self, exit_group, False):
             for exit in exit_group:
                 if exit.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
@@ -280,6 +289,9 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
 
+        if dx != 0:
+            self.touching_wall = False
+
         if dy > 0:
             self.in_air = True
 
@@ -304,7 +316,7 @@ class Player(pygame.sprite.Sprite):
 
         if pygame.sprite.spritecollide(self, enemy_group, False):
             self.health -= 1
-
+        print(self.touching_wall)
         return d_scroll_hor, d_scroll_ver, level_change, previous_level
 
     def update_action(self, new_action):
@@ -925,7 +937,7 @@ while run:
                 total_ver_scroll = -world.ver_off
             elif exit_btn.draw():
                 run = False
-    elif map:
+    elif map_menu:
         screen.blit(map_img, (0, 0))
 
 
@@ -956,7 +968,7 @@ while run:
             if event.key == pygame.K_s:
                 cast = True
             if event.key == pygame.K_s:
-                map = True
+                map_menu = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -970,7 +982,7 @@ while run:
             if event.key == pygame.K_s:
                 cast = False
             if event.key == pygame.K_s:
-                map = False
+                map_menu = False
 
     clock.tick(fps)
     pygame.display.update()
