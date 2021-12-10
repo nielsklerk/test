@@ -18,7 +18,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
 tile_size = 64
-tile_types = 27
+tile_types = 34
 cols = 48
 rows = 27
 game_over = False
@@ -37,7 +37,7 @@ moving_left = False
 moving_right = False
 shoot = False
 cast = False
-doublejump_acquired = False
+doublejump_acquired = True
 map_menu = False
 
 # scroll variables
@@ -82,7 +82,7 @@ for x in range(tile_types):
     tile_img_list.append(img)
 
 # projectile images
-arrow_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (10, 10))
+arrow_img = pygame.transform.scale(pygame.image.load("img/Projectiles/arrow.png"), (10, 10))
 spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
 
 # item images
@@ -117,6 +117,7 @@ def draw_text(text, fonttype, color, xcoords, ycoords):
 
 def reset_level():
     arrow_group.empty()
+    spell_group.empty()
     item_group.empty()
     decoration_group.empty()
     lava_group.empty()
@@ -243,10 +244,8 @@ class Player(pygame.sprite.Sprite):
                     self.vel_y = -20
                     self.jump = False
                     self.wall_jump = False
-                    if doublejump_acquired:
-                        self.amount_jumps -= 1
-                    else:
-                        self.amount_jumps -= 2
+                    if not doublejump_acquired:
+                        self.amount_jumps = 0
 
         if self.touching_wall:
             self.slide_factor = 0.5
@@ -269,12 +268,12 @@ class Player(pygame.sprite.Sprite):
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
                 self.touching_wall = True
+                if self.wall_jump:
+                    self.amount_jumps = 2
                 if self.direction > 0:
                     self.rect.right = one_tile[1].left - 1
-                    self.amount_jumps = 2
                 elif self.direction < 0:
                     self.rect.left = one_tile[1].right + 1
-                    self.amount_jumps = 2
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
@@ -282,6 +281,7 @@ class Player(pygame.sprite.Sprite):
                     dy = one_tile[1].bottom - self.rect.top
                 elif self.vel_y >= 0:
                     self.vel_y = 0
+                    self.touching_wall = False
                     self.in_air = False
                     self.amount_jumps = 2
                     dy = one_tile[1].top - self.rect.bottom
@@ -316,7 +316,6 @@ class Player(pygame.sprite.Sprite):
 
         if pygame.sprite.spritecollide(self, enemy_group, False):
             self.health -= 1
-        print(self.touching_wall)
         return d_scroll_hor, d_scroll_ver, level_change, previous_level
 
     def update_action(self, new_action):
@@ -846,6 +845,7 @@ total_ver_scroll = -world.ver_off
 
 run = True
 while run:
+    print(level)
     if game_started:
         if 0 <= level <= 6:
             current_world = 0
@@ -939,7 +939,6 @@ while run:
                 run = False
     elif map_menu:
         screen.blit(map_img, (0, 0))
-
 
     else:
         screen.fill((50, 50, 50))
