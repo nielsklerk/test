@@ -65,7 +65,8 @@ shoot_fx.set_volume(0.5)
 start_img = pygame.image.load("img/New Piskel.png")
 exit_img = pygame.image.load("img/New Piskel.png")
 respawn_img = pygame.image.load("img/New Piskel.png")
-map_img = pygame.image.load("img/New Piskel.png")
+map_img = pygame.image.load("img/level layout map.png")
+map_background_img = pygame.image.load("img/level background map.png")
 
 # background images
 bg_img_list = []
@@ -97,10 +98,10 @@ item_dict = {
 }
 
 # exit images
-exitup_img = pygame.transform.scale(pygame.image.load("img/Tile/1.png"), (tile_size, tile_size))
-exitright_img = pygame.transform.scale(pygame.image.load("img/Tile/2.png"), (tile_size, tile_size))
-exitdown_img = pygame.transform.scale(pygame.image.load("img/Tile/3.png"), (tile_size, tile_size))
-exitleft_img = pygame.transform.scale(pygame.image.load("img/Tile/4.png"), (tile_size, tile_size))
+exitup_img = pygame.transform.scale(pygame.image.load("img/sign/upsign.png"), (tile_size, tile_size))
+exitright_img = pygame.transform.scale(pygame.image.load("img/sign/rightsign.png"), (tile_size, tile_size))
+exitdown_img = pygame.transform.scale(pygame.image.load("img/sign/downsign.png"), (tile_size, tile_size))
+exitleft_img = pygame.transform.scale(pygame.image.load("img/sign/leftsign.png"), (tile_size, tile_size))
 
 # font
 font = pygame.font.SysFont(pygame.font.get_fonts()[41], 60)
@@ -258,18 +259,12 @@ class Player(pygame.sprite.Sprite):
             self.in_air = True
         dy += self.vel_y * self.slide_factor
 
-        if pygame.sprite.spritecollide(self, exit_group, False):
-            for exit in exit_group:
-                if exit.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
-                    level_change = exit.level_change
-                    previous_level = exit.direction
-
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
                 self.touching_wall = True
                 if self.wall_jump:
-                    self.amount_jumps = 2
+                    self.amount_jumps = 1
                 if self.direction > 0:
                     self.rect.right = one_tile[1].left - 1
                 elif self.direction < 0:
@@ -314,8 +309,16 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
+        if pygame.sprite.spritecollide(self, exit_group, False):
+            for exit in exit_group:
+                if exit.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                    level_change = exit.level_change
+                    previous_level = exit.direction
         if pygame.sprite.spritecollide(self, enemy_group, False):
             self.health -= 1
+        if pygame.sprite.spritecollide(self, lava_group, False):
+            self.health = 0
+
         return d_scroll_hor, d_scroll_ver, level_change, previous_level
 
     def update_action(self, new_action):
@@ -365,7 +368,7 @@ class Player(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, health, flying,  xcoords, ycoords, enemy_type, vision_height, vision_width, speed):
+    def __init__(self, health, flying, xcoords, ycoords, enemy_type, vision_height, vision_width, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         self.health = health
@@ -456,51 +459,51 @@ class World:
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
                 if one_tile == 0:
-                    if xcoords + 2 < 16:
+                    if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 12) * tile_size
-                    if ycoords <= 7:
+                        self.hor_off = -(xcoords - 8) * tile_size
+                    if ycoords <= 6:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
-                if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15)\
-                        and previous_level == "Up":
-                    if xcoords + 2 < 7:
+                if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
+                        or one_tile == 17) and previous_level == "Up":
+                    if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 13) * tile_size
-                    if ycoords <= 7:
+                        self.hor_off = -(xcoords - 8) * tile_size
+                    if ycoords <= 6:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
-                if (one_tile == 2 or one_tile == 8 or one_tile == 17 or one_tile == 19 or one_tile == 21
-                        or one_tile == 23 or one_tile == 25) and previous_level == "Right":
-                    if xcoords + 2 < 7:
+                if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
+                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                    if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 13) * tile_size
-                    if ycoords <= 7:
+                        self.hor_off = -(xcoords - 8) * tile_size
+                    if ycoords <= 6:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
-                if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16)\
-                        and previous_level == "Down":
-                    if xcoords + 2 < 7:
+                if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
+                        or one_tile == 18) and previous_level == "Down":
+                    if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 13) * tile_size
-                    if ycoords <= 7:
+                        self.hor_off = -(xcoords - 8) * tile_size
+                    if ycoords <= 6:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
-                if (one_tile == 4 or one_tile == 10 or one_tile == 18 or one_tile == 20 or one_tile == 22
-                        or one_tile == 24 or one_tile == 26) and previous_level == "Left":
-                    if xcoords - 2 <= 11:
+                if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
+                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                    if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
-                        self.hor_off = -(xcoords - 11) * tile_size
-                    if ycoords <= 7:
+                        self.hor_off = -(xcoords - 8) * tile_size
+                    if ycoords <= 6:
                         self.ver_off = 0
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
@@ -544,6 +547,10 @@ class World:
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
+                    elif one_tile == 5:
+                        self.obstacle_list.append(tile_data)
+                    elif one_tile == 6:
+                        self.obstacle_list.append(tile_data)
                     elif one_tile == 7:
                         exit = Exit(exitup_img, xcoords * tile_size + self.hor_off,
                                     ycoords * tile_size + self.ver_off, "Down", -1)
@@ -603,30 +610,30 @@ class World:
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 15:
                         exit = Exit(exitup_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Down", -52)
+                                    ycoords * tile_size + self.ver_off, "Down", 7)
                         exit_group.add(exit)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 16:
                         exit = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Up", 52)
+                                    ycoords * tile_size + self.ver_off, "Up", -7)
                         exit_group.add(exit)
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 17:
-                        exit = Exit(exitright_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Left", 2)
+                        exit = Exit(exitup_img, xcoords * tile_size + self.hor_off,
+                                    ycoords * tile_size + self.ver_off, "Down", -13)
                         exit_group.add(exit)
-                        if previous_level == "Right":
-                            player_character = Player((xcoords + 0.5 * player.direction) * tile_size + self.hor_off,
+                        if previous_level == "Up":
+                            player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 18:
-                        exit = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Right", -2)
+                        exit = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
+                                    ycoords * tile_size + self.ver_off, "Up", 13)
                         exit_group.add(exit)
-                        if previous_level == "Left":
+                        if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 19:
@@ -659,43 +666,68 @@ class World:
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 23:
                         exit = Exit(exitright_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Left", 43)
+                                    ycoords * tile_size + self.ver_off, "Left", 2)
                         exit_group.add(exit)
                         if previous_level == "Right":
                             player_character = Player((xcoords + 0.5 * player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 24:
                         exit = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Right", -43)
+                                    ycoords * tile_size + self.ver_off, "Right", -2)
                         exit_group.add(exit)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 25:
                         exit = Exit(exitright_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Left", -42)
+                                    ycoords * tile_size + self.ver_off, "Left", 4)
                         exit_group.add(exit)
                         if previous_level == "Right":
                             player_character = Player((xcoords + 0.5 * player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 26:
                         exit = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
-                                    ycoords * tile_size + self.ver_off, "Right", 42)
+                                    ycoords * tile_size + self.ver_off, "Right", -4)
                         exit_group.add(exit)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
-                    elif 5 <= one_tile <= 6:
+                    elif one_tile == 27:
+                        pass
+                    elif one_tile == 28:
                         self.obstacle_list.append(tile_data)
+                    elif one_tile == 29:
+                        self.obstacle_list.append(tile_data)
+                    elif one_tile == 30:
+                        self.obstacle_list.append(tile_data)
+                    elif one_tile == 31:
+                        self.obstacle_list.append(tile_data)
+                    elif one_tile == 32:
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Health")
+                        item_group.add(item)
+                    elif one_tile == 33:
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Money")
+                        item_group.add(item)
+                    elif one_tile == 38:
+                        exit = Exit(exitright_img, xcoords * tile_size + self.hor_off,
+                                    ycoords * tile_size + self.ver_off, "Left", 45)
+                        exit_group.add(exit)
+                        if previous_level == "Right":
+                            player_character = Player((xcoords + 0.5 * player.direction) * tile_size + self.hor_off,
+                                                      ycoords * tile_size + self.ver_off)
+                    elif one_tile == 39:
+                        exit = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
+                                    ycoords * tile_size + self.ver_off, "Right", -45)
+                        exit_group.add(exit)
+                        if previous_level == "Left":
+                            player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
+                                                      ycoords * tile_size + self.ver_off)
                     elif -2 <= one_tile <= -2:
                         lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         lava_group.add(lava)
                     elif -2 <= one_tile <= -2:
                         decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         decoration_group.add(decoration)
-                    elif one_tile == -2:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Health")
-                        item_group.add(item)
         return player_character
 
     def draw(self):
@@ -845,7 +877,6 @@ total_ver_scroll = -world.ver_off
 
 run = True
 while run:
-    print(level)
     if game_started:
         if 0 <= level <= 6:
             current_world = 0
@@ -857,7 +888,6 @@ while run:
             current_world = 3
         elif 38 <= level <= 48:
             current_world = 4
-
         draw_bg()
         world.draw()
         for x in range(player.max_health):
@@ -884,6 +914,10 @@ while run:
         decoration_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
+
+        if map_menu:
+            screen.blit(map_background_img, (0, 0))
+            screen.blit(map_img, (0, 0))
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
@@ -937,9 +971,6 @@ while run:
                 total_ver_scroll = -world.ver_off
             elif exit_btn.draw():
                 run = False
-    elif map_menu:
-        screen.blit(map_img, (0, 0))
-
     else:
         screen.fill((50, 50, 50))
         draw_text("A Tiny Little Game", font, (0, 0, 0), 250, 60)
@@ -966,7 +997,7 @@ while run:
                 shoot = True
             if event.key == pygame.K_s:
                 cast = True
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_m:
                 map_menu = True
 
         if event.type == pygame.KEYUP:
@@ -980,7 +1011,7 @@ while run:
                 shoot = False
             if event.key == pygame.K_s:
                 cast = False
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_m:
                 map_menu = False
 
     clock.tick(fps)
