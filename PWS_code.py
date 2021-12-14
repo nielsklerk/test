@@ -312,8 +312,8 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, exit_group, False):
             for exit_sign in exit_group:
                 if exit_sign.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
-                    level_change_factor = exit.level_change
-                    previous_level_number = exit.direction
+                    level_change_factor = exit_sign.level_change
+                    previous_level_number = exit_sign.direction
         if pygame.sprite.spritecollide(self, enemy_group, False):
             self.health -= 1
         if pygame.sprite.spritecollide(self, lava_group, False):
