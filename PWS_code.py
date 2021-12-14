@@ -22,10 +22,10 @@ tile_types = 34
 cols = 48
 rows = 27
 game_over = False
-previous_level = None
+previous_level = "Left"
 level = 0
-current_world = 0
-world_types = 1
+current_world = 15
+world_types = 3
 game_started = False
 hor_offset = 0
 ver_offset = 0
@@ -163,7 +163,7 @@ class Player(pygame.sprite.Sprite):
         self.alive = True
         self.health = 9
         self.max_health = 10
-        self.speed = 10
+        self.speed = 20
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
         self.direction = 1
@@ -286,6 +286,7 @@ class Player(pygame.sprite.Sprite):
 
         if dx != 0:
             self.touching_wall = False
+            self.wall_jump_cooldown = 0
 
         if dy > 0:
             self.in_air = True
@@ -894,8 +895,7 @@ while run:
             screen.blit(max_health_img, (90 + (x * 20), 40))
         for x in range(player.health):
             screen.blit(health_img, (90 + (x * 20), 40))
-        player.update()
-        player.draw()
+
 
         for enemy in enemy_group:
             enemy.update()
@@ -923,6 +923,8 @@ while run:
         total_hor_scroll -= scroll_hor
         total_ver_scroll -= scroll_ver
         if player.alive:
+            player.update()
+            player.draw()
             if cast:
                 player.cast()
                 player.update_action(4)
@@ -999,6 +1001,8 @@ while run:
                 cast = True
             if event.key == pygame.K_m:
                 map_menu = True
+            if event.key == pygame.K_DELETE:
+                player.alive = False
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:

@@ -126,6 +126,11 @@ while run:
     clock.tick(fps)
     if 0 <= level <= 6:
         draw_bg(0)
+    elif 7 <= level <= 14:
+        draw_bg(1)
+    elif 15 <= level <= 26:
+        draw_bg(2)
+
 
     draw_world()
     draw_grid()
