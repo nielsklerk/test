@@ -15,7 +15,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tile_types = 27
+tile_types = 35
 current_tile = 0
 
 scroll_left = False
@@ -126,6 +126,11 @@ while run:
     clock.tick(fps)
     if 0 <= level <= 6:
         draw_bg(0)
+    elif 7 <= level <= 14:
+        draw_bg(1)
+    elif 15 <= level <= 26:
+        draw_bg(2)
+
 
     draw_world()
     draw_grid()
