@@ -91,10 +91,20 @@ health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20
 max_health_img = pygame.transform.scale(pygame.image.load("img/Item/max_heart.png"), (20, 20))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (10, 10))
+wall_jump_item = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+double_jump_item = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+emerald_img = pygame.transform.scale(pygame.image.load("img/Item/Emerald.png"), (10, 10))
+ruby_img = pygame.transform.scale(pygame.image.load("img/Item/Ruby.png"), (10, 10))
+sapphire_img = pygame.transform.scale(pygame.image.load("img/Item/Sapphire.png"), (10, 10))
 item_dict = {
     "Health": health_img,
     "Mana": mana_img,
-    "Money": money_img
+    "Money": money_img,
+    "Walljump": wall_jump_item,
+    "Doublejump": double_jump_item,
+    "Emerald": emerald_img,
+    "Ruby": ruby_img,
+    "Sapphire": sapphire_img
 }
 
 # exit images
