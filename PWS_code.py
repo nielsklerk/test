@@ -37,12 +37,16 @@ moving_left = False
 moving_right = False
 shoot = False
 cast = False
+walljump_acquired = False
 doublejump_acquired = True
+emerald_acquired = False
+ruby_acquired = False
+sapphire_acquired = False
 map_menu = False
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
-scroll_threshold_ver = tile_size
+scroll_threshold_ver = 2 * tile_size
 scroll_hor = 0
 scroll_ver = 0
 scroll_speed = 1
@@ -181,7 +185,7 @@ class Player(pygame.sprite.Sprite):
         self.amount_jumps = 2
         self.in_air = True
         self.touching_wall = False
-        self.wall_jump = True
+        self.wall_jump = False
         self.slide_factor = 0.5
         self.flip = False
         self.vel_y = 0
@@ -235,28 +239,29 @@ class Player(pygame.sprite.Sprite):
             dx = self.speed
             self.flip = False
             self.direction = 1
-        if not self.wall_jump:
+        if not self.wall_jump and walljump_acquired:
             self.wall_jump_cooldown -= 1
         if self.wall_jump_cooldown <= 0:
             self.wall_jump_cooldown = 60
             self.wall_jump = True
 
-        if self.jump and not self.amount_jumps <= 0:
-            if not self.touching_wall:
-                self.vel_y = -20
-                self.jump = False
-                self.in_air = True
-                if doublejump_acquired:
-                    self.amount_jumps -= 1
-                else:
-                    self.amount_jumps -= 2
-            else:
-                if self.wall_jump:
+        if not self.in_air or doublejump_acquired:
+            if self.jump and not self.amount_jumps <= 0:
+                if not self.touching_wall:
                     self.vel_y = -20
                     self.jump = False
-                    self.wall_jump = False
-                    if not doublejump_acquired:
-                        self.amount_jumps = 0
+                    self.in_air = True
+                    if doublejump_acquired:
+                        self.amount_jumps -= 1
+                    else:
+                        self.amount_jumps -= 2
+                else:
+                    if self.wall_jump and walljump_acquired:
+                        self.vel_y = -20
+                        self.jump = False
+                        self.wall_jump = False
+                        if not doublejump_acquired:
+                            self.amount_jumps = 0
 
         if self.touching_wall:
             self.slide_factor = 0.5
@@ -296,7 +301,8 @@ class Player(pygame.sprite.Sprite):
 
         if dx != 0:
             self.touching_wall = False
-            self.wall_jump_cooldown = 0
+            if walljump_acquired:
+                self.wall_jump_cooldown = 0
 
         if dy > 0:
             self.in_air = True
@@ -312,11 +318,10 @@ class Player(pygame.sprite.Sprite):
             d_scroll_hor = -dx
 
         # scrolling vertical
-        if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= scroll_threshold_ver:
+        if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= 0:
             self.rect.top = scroll_threshold_ver
             d_scroll_ver -= self.vel_y
-        if self.rect.bottom > screen_height - scroll_threshold_ver and \
-                total_ver_scroll < (world.level_height * tile_size) - screen_height:
+        if self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
@@ -474,50 +479,50 @@ class World:
                         self.hor_off = 0
                     else:
                         self.hor_off = -(xcoords - 8) * tile_size
-                    if ycoords <= 6:
+                    if ycoords <= 5:
                         self.ver_off = 0
                     else:
-                        self.ver_off = -(ycoords - 7) * tile_size
+                        self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
-                        or one_tile == 17) and previous_level == "Up":
+                    or one_tile == 17) and previous_level == "Up":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
                         self.hor_off = -(xcoords - 8) * tile_size
-                    if ycoords <= 6:
+                    if ycoords <= 5:
                         self.ver_off = 0
                     else:
-                        self.ver_off = -(ycoords - 7) * tile_size
+                        self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
-                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                    or one_tile == 25 or one_tile == 38) and previous_level == "Right":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
                         self.hor_off = -(xcoords - 8) * tile_size
-                    if ycoords <= 6:
+                    if ycoords <= 5:
                         self.ver_off = 0
                     else:
-                        self.ver_off = -(ycoords - 7) * tile_size
+                        self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
-                        or one_tile == 18) and previous_level == "Down":
+                    or one_tile == 18) and previous_level == "Down":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
                         self.hor_off = -(xcoords - 8) * tile_size
-                    if ycoords <= 6:
+                    if ycoords <= 5:
                         self.ver_off = 0
                     else:
-                        self.ver_off = -(ycoords - 7) * tile_size
+                        self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
-                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                    or one_tile == 26 or one_tile == 39) and previous_level == "Left":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
                         self.hor_off = -(xcoords - 8) * tile_size
-                    if ycoords <= 6:
+                    if ycoords <= 5:
                         self.ver_off = 0
                     else:
-                        self.ver_off = -(ycoords - 7) * tile_size
+                        self.ver_off = -(ycoords - 6) * tile_size
         for ycoords, one_row in enumerate(data):
             for xcoords, one_tile in enumerate(one_row):
                 if one_tile >= 0:
@@ -804,6 +809,19 @@ class Item(pygame.sprite.Sprite):
                     player.health = player.max_health
             elif self.item_type == "Mana":
                 pass
+            elif self.item_type == "Money":
+                pass
+            elif self.item_type == "Walljump":
+                walljump_acquired = True
+            elif self.item_type == "Doublejump":
+                doublejump_acquired = True
+            elif self.item_type == "Emerald":
+                emerald_acquired = True
+            elif self.item_type == "Ruby":
+                ruby_acquired = True
+            elif self.item_type == "Sapphire":
+                sapphire_acquired = True
+
             self.kill()
 
 
@@ -906,7 +924,6 @@ while run:
         for x in range(player.health):
             screen.blit(health_img, (90 + (x * 20), 40))
 
-
         for enemy in enemy_group:
             enemy.update()
             enemy.draw()
@@ -924,10 +941,6 @@ while run:
         decoration_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
-
-        if map_menu:
-            screen.blit(map_background_img, (0, 0))
-            screen.blit(map_img, (0, 0))
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
@@ -947,6 +960,10 @@ while run:
                 player.update_action(1)
             else:
                 player.update_action(0)
+
+            if map_menu:
+                screen.blit(map_background_img, (0, 0))
+                screen.blit(map_img, (0, 0))
 
             if level_change != 0:
                 total_hor_scroll = 0
