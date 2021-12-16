@@ -18,7 +18,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
 tile_size = 64
-tile_types = 42
+tile_types = 44
 cols = 48
 rows = 27
 game_over = False
@@ -95,8 +95,8 @@ health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20
 max_health_img = pygame.transform.scale(pygame.image.load("img/Item/max_heart.png"), (20, 20))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (10, 10))
-wall_jump_item = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-double_jump_item = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+wall_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Wall_jump.png"), (10, 10))
+double_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Double_jump.png"), (10, 10))
 emerald_img = pygame.transform.scale(pygame.image.load("img/Item/Emerald.png"), (10, 10))
 ruby_img = pygame.transform.scale(pygame.image.load("img/Item/Ruby.png"), (10, 10))
 sapphire_img = pygame.transform.scale(pygame.image.load("img/Item/Sapphire.png"), (10, 10))
@@ -741,6 +741,13 @@ class World:
                     elif one_tile == 41:
                         lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         lava_group.add(lava)
+                    elif one_tile == 42:
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Doublejump")
+                        item_group.add(item)
+                    elif one_tile == 43:
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Walljump")
+                        item_group.add(item)
+
                     elif -2 <= one_tile <= -2:
                         decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         decoration_group.add(decoration)
