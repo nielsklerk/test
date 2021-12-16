@@ -25,7 +25,7 @@ rows = 27
 game_over = False
 previous_level = "Left"
 level = 0
-current_world = 15
+current_world = 0
 world_types = 3
 game_started = False
 hor_offset = 0
@@ -384,6 +384,7 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, health, flying, xcoords, ycoords, enemy_type, vision_height, vision_width, speed):
         pygame.sprite.Sprite.__init__(self)
+        self.world = 1
         self.alive = True
         self.health = 5
         self.flying = flying
@@ -401,39 +402,42 @@ class Enemy(pygame.sprite.Sprite):
         self.move_counter = 0
         self.idling = False
         self.idling_counter = 0
-
-        animation_types = ['Idle']
-        for animation in animation_types:
-            temp_list = []
-            # count number of files in the folder
-            num_of_frames = len(os.listdir(f'img/Enemy/{self.enemy_type}/{animation}'))
-            for i in range(num_of_frames):
-                enemy_img = pygame.image.load(f'img/Enemy/{self.enemy_type}/{animation}/{i}.png')
-                enemy_img = pygame.transform.scale(enemy_img, (enemy_img.get_width() * 2, enemy_img.get_height() * 2))
-                temp_list.append(enemy_img)
-            self.animation_list.append(temp_list)
-        self.image = self.animation_list[self.action][self.index]
-        self.rect = self.image.get_rect()
-        self.rect.center = (xcoords, ycoords)
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
+        if current_world == 3:
+            self.world = 1
+        elif current_world == 4:
+            self.world = 2
+        elif current_world == 5:
+            self.world = 3
+        if self.world > 0:
+            animation_types = ['Idle']
+            for animation in animation_types:
+                temp_list = []
+                # count number of files in the folder
+                num_of_frames = len(os.listdir(f'img/Enemy/Enemy{self.enemy_type}/World{self.world}/{animation}'))
+                for i in range(num_of_frames):
+                    enemy_img = pygame.image.load(f'img/Enemy/Enemy{self.enemy_type}/World{self.world}/{animation}/{i}.png')
+                    enemy_img = pygame.transform.scale(enemy_img, (tile_size, tile_size))
+                    temp_list.append(enemy_img)
+                self.animation_list.append(temp_list)
+            self.image = self.animation_list[self.action][self.index]
+            self.rect = self.image.get_rect()
+            self.rect.center = (xcoords, ycoords)
+            self.width = self.image.get_width()
+            self.height = self.image.get_height()
         self.vision = pygame.Rect(0, 0, vision_width, vision_height)
         self.move_counter = 0
 
-    def move(self):
+    def move(self, moving_left, moving_right):
         dx = 0
         dy = 0
-        self.move_counter += 1
-        if self.move_counter == 10 * (tile_size // self.speed):
-            self.direction *= -1
-            self.move_counter = 0
-
-        if self.direction == -1:
+        if moving_left:
             dx = -self.speed
             self.flip = True
-        if self.direction == 1:
+            self.direction = -1
+        if moving_right:
             dx = self.speed
             self.flip = False
+            self.direction = 1
 
         if not self.flying:
             self.vel_y += gravity
@@ -455,11 +459,6 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.x += int(dx)
         self.rect.y += int(dy)
 
-    def update(self):
-        self.move()
-        self.rect.x += int(scroll_hor)
-        self.rect.y += int(scroll_ver)
-
     def ai(self):
         if self.alive and player.alive:
             if not self.idling and random.randint(1, 200) == 1:
@@ -473,7 +472,7 @@ class Enemy(pygame.sprite.Sprite):
                     ai_moving_right = False
                 ai_moving_left = not ai_moving_right
                 self.move(ai_moving_left, ai_moving_right)
-                self.update_action(1)  # 1: run
+                self.update_action(0)  # 1: run
                 self.move_counter += 1
 
                 if self.move_counter > tile_size:
@@ -483,6 +482,38 @@ class Enemy(pygame.sprite.Sprite):
                 self.idling_counter -= 1
                 if self.idling_counter <= 0:
                     self.idling = False
+
+            self.rect.x += int(scroll_hor)
+            self.rect.y += int(scroll_ver)
+
+    def update_action(self, new_action):
+        if new_action != self.action:
+            self.action = new_action
+            self.index = 0
+            self.update_time = pygame.time.get_ticks()
+
+    def check_alive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+            self.update_action(0)
+
+    def update_animation(self):
+        animation_cooldown = 100
+        self.image = self.animation_list[self.action][self.index]
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.index += 1
+        if self.index >= len(self.animation_list[self.action]):
+            if self.action == 3:
+                self.index = len(self.animation_list[self.action]) - 1
+            else:
+                self.index = 0
+
+    def update(self):
+        self.update_animation()
+        self.check_alive()
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -737,7 +768,7 @@ class World:
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 27:
                         enemy = Enemy(5, False, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off,
-                                      150, 300, 5)
+                                      1, 150, 300, 5)
                         enemy_group.add(enemy)
                     elif one_tile == 28:
                         self.obstacle_list.append(tile_data)
@@ -964,6 +995,7 @@ while run:
             screen.blit(health_img, (90 + (x * 20), 40))
 
         for enemy in enemy_group:
+            enemy.ai()
             enemy.update()
             enemy.draw()
 
