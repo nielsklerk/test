@@ -18,7 +18,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
 tile_size = 64
-tile_types = 34
+tile_types = 42
 cols = 48
 rows = 27
 game_over = False
@@ -196,7 +196,7 @@ class Player(pygame.sprite.Sprite):
         self.wall_jump_cooldown = 60
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
@@ -288,7 +288,7 @@ class Player(pygame.sprite.Sprite):
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = d_scroll_ver
-                    dy = one_tile[1].bottom - self.rect.top
+                    dy = one_tile[1].bottom - self.rect.top + 5
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.touching_wall = False
@@ -303,9 +303,6 @@ class Player(pygame.sprite.Sprite):
             self.touching_wall = False
             if walljump_acquired:
                 self.wall_jump_cooldown = 0
-
-        if dy > 0:
-            self.in_air = True
 
         self.rect.x += int(dx)
         self.rect.y += int(dy)
@@ -484,7 +481,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
-                    or one_tile == 17) and previous_level == "Up":
+                        or one_tile == 17) and previous_level == "Up":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -494,7 +491,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
-                    or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -504,7 +501,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
-                    or one_tile == 18) and previous_level == "Down":
+                        or one_tile == 18) and previous_level == "Down":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -514,7 +511,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
-                    or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -738,7 +735,10 @@ class World:
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
-                    elif -2 <= one_tile <= -2:
+                    elif one_tile == 40:
+                        lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
+                        lava_group.add(lava)
+                    elif one_tile == 41:
                         lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         lava_group.add(lava)
                     elif -2 <= one_tile <= -2:
@@ -956,6 +956,8 @@ while run:
                 player.update_action(3)
             if player.in_air:
                 player.update_action(2)
+            if player.touching_wall and player.in_air:
+                player.update_action(6)
             elif moving_left or moving_right:
                 player.update_action(1)
             else:
