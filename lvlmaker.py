@@ -130,6 +130,8 @@ while run:
         draw_bg(1)
     elif 15 <= level <= 26:
         draw_bg(2)
+    elif 27 <= level <= 34:
+        draw_bg(3)
 
 
     draw_world()
