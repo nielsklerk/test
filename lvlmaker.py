@@ -15,7 +15,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tile_types = 35
+tile_types = 44
 current_tile = 0
 
 scroll_left = False
