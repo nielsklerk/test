@@ -197,7 +197,7 @@ class Player(pygame.sprite.Sprite):
         self.wall_jump_cooldown = 60
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Damage', 'Death']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
@@ -223,6 +223,12 @@ class Player(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
         if self.cast_cooldown > 0:
             self.cast_cooldown -= 1
+
+        #check collision with enemy
+        if pygame.sprite.spritecollide(player, enemy_group, False):
+            if player.alive:
+                player.health -= 2
+                self.kill()
 
     def move(self, moving_left_direction, moving_right_direction):
         dx = 0
@@ -462,6 +468,12 @@ class Enemy(pygame.sprite.Sprite):
         self.move()
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
+
+        # check collision with attacks (projectiles, swords, etc.)
+        if pygame.sprite.spritecollide():
+            if enemy.alive:
+                player.health -= 5
+                self.kill()
 
     def ai(self):
         if self.alive and player.alive:
