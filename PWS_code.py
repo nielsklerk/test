@@ -2,6 +2,7 @@ import pygame
 from pygame import mixer
 import os
 import csv
+import random
 
 pygame.init()
 mixer.init()
@@ -372,9 +373,9 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, health, flying, xcoords, ycoords, enemy_type, vision_height, vision_width, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.health = health
+        self.health = 5
         self.flying = flying
-        self.speed = speed
+        self.speed = 2
         self.enemy_type = enemy_type
         self.direction = 1
         self.in_air = True
@@ -384,13 +385,18 @@ class Enemy(pygame.sprite.Sprite):
         self.index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
+        # ai specific variables
+        self.move_counter = 0
+        self.idling = False
+        self.idling_counter = 0
+
         animation_types = ['Idle']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
-            num_of_frames = len(os.listdir(f'img/Enemy/{self.enemy_type}/{animation}'))
+            num_of_frames = len(os.listdir(f'img/Enemy/enemy1/{self.enemy_type}/{animation}'))
             for i in range(num_of_frames):
-                enemy_img = pygame.image.load(f'img/Enemy/{self.enemy_type}/{animation}/{i}.png')
+                enemy_img = pygame.image.load(f'img/Enemy/enemy1/{self.enemy_type}/{animation}/{i}.png')
                 enemy_img = pygame.transform.scale(enemy_img, (enemy_img.get_width() * 2, enemy_img.get_height() * 2))
                 temp_list.append(enemy_img)
             self.animation_list.append(temp_list)
@@ -442,6 +448,30 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
+    def ai(self):
+        if self.alive and player.alive:
+            if self.idling == False and random.randint(1, 200) == 1:
+                self.update_action(0)  # 0: idle
+                self.idling = True
+                self.idling_counter = 50
+            if self.idling == False:
+                if self.direction == 1:
+                    ai_moving_right: True
+                else:
+                    ai_moving_right: False
+                ai_moving_left = not ai_moving_right
+                self.move(ai_moving_left, ai_moving_right)
+                self.update_action(1)  # 1: run
+                self.move_counter += 1
+
+                if self.move_counter > tile_size:
+                    self.direction *= -1
+                    self.move_counter *= -1
+            else:
+                self.idling_counter -= 1
+                if self.idling_counter <= 0:
+                    self.idling = False
+
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
@@ -469,7 +499,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
-                        or one_tile == 17) and previous_level == "Up":
+                    or one_tile == 17) and previous_level == "Up":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -479,7 +509,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
-                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                    or one_tile == 25 or one_tile == 38) and previous_level == "Right":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -489,7 +519,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
-                        or one_tile == 18) and previous_level == "Down":
+                    or one_tile == 18) and previous_level == "Down":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -499,7 +529,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 7) * tile_size
                 if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
-                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                    or one_tile == 26 or one_tile == 39) and previous_level == "Left":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -896,8 +926,8 @@ while run:
         for x in range(player.health):
             screen.blit(health_img, (90 + (x * 20), 40))
 
-
         for enemy in enemy_group:
+            enemy.ai()
             enemy.update()
             enemy.draw()
 
