@@ -2,6 +2,7 @@ import pygame
 from pygame import mixer
 import os
 import csv
+import random
 
 pygame.init()
 mixer.init()
@@ -18,7 +19,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("PWS")
 
 tile_size = 64
-tile_types = 44
+tile_types = 34
 cols = 48
 rows = 27
 game_over = False
@@ -95,8 +96,8 @@ health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20
 max_health_img = pygame.transform.scale(pygame.image.load("img/Item/max_heart.png"), (20, 20))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (10, 10))
-wall_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Wall_jump.png"), (10, 10))
-double_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Double_jump.png"), (10, 10))
+wall_jump_item = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+double_jump_item = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
 emerald_img = pygame.transform.scale(pygame.image.load("img/Item/Emerald.png"), (10, 10))
 ruby_img = pygame.transform.scale(pygame.image.load("img/Item/Ruby.png"), (10, 10))
 sapphire_img = pygame.transform.scale(pygame.image.load("img/Item/Sapphire.png"), (10, 10))
@@ -196,7 +197,7 @@ class Player(pygame.sprite.Sprite):
         self.wall_jump_cooldown = 60
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
@@ -288,7 +289,7 @@ class Player(pygame.sprite.Sprite):
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = d_scroll_ver
-                    dy = one_tile[1].bottom - self.rect.top + 5
+                    dy = one_tile[1].bottom - self.rect.top
                 elif self.vel_y >= 0:
                     self.vel_y = 0
                     self.touching_wall = False
@@ -304,6 +305,9 @@ class Player(pygame.sprite.Sprite):
             if walljump_acquired:
                 self.wall_jump_cooldown = 0
 
+        if dy > 0:
+            self.in_air = True
+
         self.rect.x += int(dx)
         self.rect.y += int(dy)
 
@@ -318,8 +322,7 @@ class Player(pygame.sprite.Sprite):
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= 0:
             self.rect.top = scroll_threshold_ver
             d_scroll_ver -= self.vel_y
-        if self.rect.bottom > screen_height - scroll_threshold_ver and\
-                total_ver_scroll < (world.level_height * tile_size) - screen_height:
+        if self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
@@ -385,9 +388,9 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, health, flying, xcoords, ycoords, enemy_type, vision_height, vision_width, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.health = health
+        self.health = 5
         self.flying = flying
-        self.speed = speed
+        self.speed = 2
         self.enemy_type = enemy_type
         self.direction = 1
         self.in_air = True
@@ -397,6 +400,11 @@ class Enemy(pygame.sprite.Sprite):
         self.index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
+        # ai specific variables
+        self.move_counter = 0
+        self.idling = False
+        self.idling_counter = 0
+
         animation_types = ['Idle']
         for animation in animation_types:
             temp_list = []
@@ -455,6 +463,30 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
+    def ai(self):
+        if self.alive and player.alive:
+            if self.idling == False and random.randint(1, 200) == 1:
+                self.update_action(0)  # 0: idle
+                self.idling = True
+                self.idling_counter = 50
+            if self.idling == False:
+                if self.direction == 1:
+                    ai_moving_right: True
+                else:
+                    ai_moving_right: False
+                ai_moving_left = not ai_moving_right
+                self.move(ai_moving_left, ai_moving_right)
+                self.update_action(1)  # 1: run
+                self.move_counter += 1
+
+                if self.move_counter > tile_size:
+                    self.direction *= -1
+                    self.move_counter *= -1
+            else:
+                self.idling_counter -= 1
+                if self.idling_counter <= 0:
+                    self.idling = False
+
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
@@ -482,7 +514,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
-                        or one_tile == 17) and previous_level == "Up":
+                    or one_tile == 17) and previous_level == "Up":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -492,7 +524,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
-                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                    or one_tile == 25 or one_tile == 38) and previous_level == "Right":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -502,7 +534,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
-                        or one_tile == 18) and previous_level == "Down":
+                    or one_tile == 18) and previous_level == "Down":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -512,7 +544,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
-                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                    or one_tile == 26 or one_tile == 39) and previous_level == "Left":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -736,19 +768,9 @@ class World:
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
-                    elif one_tile == 40:
+                    elif -2 <= one_tile <= -2:
                         lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         lava_group.add(lava)
-                    elif one_tile == 41:
-                        lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
-                        lava_group.add(lava)
-                    elif one_tile == 42:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Doublejump")
-                        item_group.add(item)
-                    elif one_tile == 43:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Walljump")
-                        item_group.add(item)
-
                     elif -2 <= one_tile <= -2:
                         decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         decoration_group.add(decoration)
@@ -933,6 +955,7 @@ while run:
             screen.blit(health_img, (90 + (x * 20), 40))
 
         for enemy in enemy_group:
+            enemy.ai()
             enemy.update()
             enemy.draw()
 
@@ -964,8 +987,6 @@ while run:
                 player.update_action(3)
             if player.in_air:
                 player.update_action(2)
-            if player.touching_wall and player.in_air:
-                player.update_action(6)
             elif moving_left or moving_right:
                 player.update_action(1)
             else:
