@@ -558,6 +558,8 @@ class Npc(pygame.sprite.Sprite):
         self.height = self.image.get_height()
 
     def update(self):
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
         screen.blit (self.img, self.rect)
 
 class World:
