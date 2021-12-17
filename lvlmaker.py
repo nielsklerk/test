@@ -130,9 +130,10 @@ while run:
         draw_bg(1)
     elif 15 <= level <= 26:
         draw_bg(2)
-    elif 27 <= level <= 34:
+    elif 27 <= level <= 37:
         draw_bg(3)
-
+    elif 38 <= level <= 48:
+        pass
 
     draw_world()
     draw_grid()

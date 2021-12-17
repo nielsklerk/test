@@ -30,6 +30,9 @@ world_types = 3
 game_started = False
 hor_offset = 0
 ver_offset = 0
+player_health = 10
+player_max_health = 10
+wallet = 0
 
 gravity = 0.75
 
@@ -39,11 +42,12 @@ moving_right = False
 shoot = False
 cast = False
 walljump_acquired = False
-doublejump_acquired = True
+doublejump_acquired = False
 emerald_acquired = False
 ruby_acquired = False
 sapphire_acquired = False
 map_menu = False
+gathered_item_list = []
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
@@ -95,12 +99,12 @@ spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"
 health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
 max_health_img = pygame.transform.scale(pygame.image.load("img/Item/max_heart.png"), (20, 20))
 mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
-money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (10, 10))
-wall_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Wall_jump.png"), (10, 10))
-double_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Double_jump.png"), (10, 10))
-emerald_img = pygame.transform.scale(pygame.image.load("img/Item/Emerald.png"), (10, 10))
-ruby_img = pygame.transform.scale(pygame.image.load("img/Item/Ruby.png"), (10, 10))
-sapphire_img = pygame.transform.scale(pygame.image.load("img/Item/Sapphire.png"), (10, 10))
+money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (20, 20))
+wall_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Wall_jump.png"), (tile_size, tile_size))
+double_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Double_jump.png"), (tile_size, tile_size))
+emerald_img = pygame.transform.scale(pygame.image.load("img/Item/Emerald.png"), (tile_size, tile_size))
+ruby_img = pygame.transform.scale(pygame.image.load("img/Item/Ruby.png"), (tile_size, tile_size))
+sapphire_img = pygame.transform.scale(pygame.image.load("img/Item/Sapphire.png"), (tile_size, tile_size))
 item_dict = {
     "Health": health_img,
     "Mana": mana_img,
@@ -176,9 +180,9 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.health = 9
-        self.max_health = 10
-        self.speed = 20
+        self.health = player_health
+        self.max_health = player_max_health
+        self.speed = 8
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
         self.direction = 1
@@ -195,6 +199,7 @@ class Player(pygame.sprite.Sprite):
         self.action = 0
         self.update_time = pygame.time.get_ticks()
         self.wall_jump_cooldown = 60
+        self.invincibility = 60
 
         # load in images for player
         animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall']
@@ -278,7 +283,8 @@ class Player(pygame.sprite.Sprite):
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
-                self.touching_wall = True
+                if walljump_acquired:
+                    self.touching_wall = True
                 if self.wall_jump:
                     self.amount_jumps = 1
                 if self.direction > 0:
@@ -328,8 +334,12 @@ class Player(pygame.sprite.Sprite):
                 if exit_sign.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                     level_change_factor = exit_sign.level_change
                     previous_level_number = exit_sign.direction
-        if pygame.sprite.spritecollide(self, enemy_group, False):
+
+        if self.invincibility > 0:
+            self.invincibility -= 1
+        if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
             self.health -= 1
+            self.invincibility = 60
         if pygame.sprite.spritecollide(self, lava_group, False):
             self.health = 0
 
@@ -400,6 +410,7 @@ class Enemy(pygame.sprite.Sprite):
         self.update_time = pygame.time.get_ticks()
         # ai specific variables
         self.move_counter = 0
+        self.vision = pygame.Rect(0, 0, vision_width, vision_height)
         self.idling = False
         self.idling_counter = 0
         if current_world == 3:
@@ -461,30 +472,42 @@ class Enemy(pygame.sprite.Sprite):
 
     def ai(self):
         if self.alive and player.alive:
+            if pygame.sprite.spritecollide(self, spell_group, True):
+                self.health -= 5
+            if pygame.sprite.spritecollide(self, arrow_group, True):
+                self.health -= 1
             if not self.idling and random.randint(1, 200) == 1:
                 self.update_action(0)  # 0: idle
                 self.idling = True
                 self.idling_counter = 50
-            if not self.idling:
-                if self.direction == 1:
-                    ai_moving_right = True
-                else:
-                    ai_moving_right = False
-                ai_moving_left = not ai_moving_right
-                self.move(ai_moving_left, ai_moving_right)
-                self.update_action(0)  # 1: run
-                self.move_counter += 1
-
-                if self.move_counter > tile_size:
-                    self.direction *= -1
-                    self.move_counter *= -1
+            if self.vision.colliderect(player.rect):
+                self.attack()
             else:
-                self.idling_counter -= 1
-                if self.idling_counter <= 0:
-                    self.idling = False
+                if not self.idling:
+                    if self.direction == 1:
+                        ai_moving_right = True
+                    else:
+                        ai_moving_right = False
+                    ai_moving_left = not ai_moving_right
+                    self.move(ai_moving_left, ai_moving_right)
+                    self.update_action(0)  # 1: run
+                    self.move_counter += 1
+                    self.vision.center = (self.rect.centerx + 75 * self.direction, self.rect.centery)
+
+                    if self.move_counter > tile_size:
+                        self.direction *= -1
+                        self.move_counter *= -1
+                else:
+                    self.idling_counter -= 1
+                    if self.idling_counter <= 0:
+                        self.idling = False
 
             self.rect.x += int(scroll_hor)
             self.rect.y += int(scroll_ver)
+
+    def attack(self):
+        if self.enemy_type == 1:
+            pass
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -514,9 +537,12 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         self.update_animation()
         self.check_alive()
+        if not self.alive:
+            self.kill()
 
     def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+        if self.alive:
+            screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
 class World:
@@ -779,10 +805,10 @@ class World:
                     elif one_tile == 31:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 32:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Health")
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Health")
                         item_group.add(item)
                     elif one_tile == 33:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Money")
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Money")
                         item_group.add(item)
                     elif one_tile == 38:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
@@ -799,16 +825,16 @@ class World:
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 40:
-                        lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
+                        lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
                         lava_group.add(lava)
                     elif one_tile == 41:
-                        lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
+                        lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
                         lava_group.add(lava)
                     elif one_tile == 42:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Doublejump")
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Doublejump")
                         item_group.add(item)
                     elif one_tile == 43:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size, "Walljump")
+                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Walljump")
                         item_group.add(item)
 
                     elif -2 <= one_tile <= -2:
@@ -854,7 +880,7 @@ class Lava(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = lava_img
         self.rect = self.image.get_rect()
-        self.rect.midtop = (xcoords + tile_size // 2, ycoords + (tile_size - self.image.get_height()))
+        self.rect.midtop = (xcoords + tile_size // 2, ycoords)
 
     def update(self):
         self.rect.x += int(scroll_hor)
@@ -868,6 +894,11 @@ class Item(pygame.sprite.Sprite):
         self.image = item_dict[self.item_type]
         self.rect = self.image.get_rect()
         self.rect.midtop = (xcoords + tile_size // 2, ycoords + tile_size - self.image.get_height())
+        self.walljump_acquired = False
+        self.doublejump_acquired = False
+        self.emerald_acquired = False
+        self.ruby_acquired = False
+        self.sapphire_acquired = False
 
     def update(self):
         self.rect.x += int(scroll_hor)
@@ -882,17 +913,20 @@ class Item(pygame.sprite.Sprite):
             elif self.item_type == "Money":
                 pass
             elif self.item_type == "Walljump":
-                walljump_acquired = True
+                self.walljump_acquired = True
             elif self.item_type == "Doublejump":
-                doublejump_acquired = True
+                self.doublejump_acquired = True
             elif self.item_type == "Emerald":
-                emerald_acquired = True
+                self.emerald_acquired = True
             elif self.item_type == "Ruby":
-                ruby_acquired = True
+                self.ruby_acquired = True
             elif self.item_type == "Sapphire":
-                sapphire_acquired = True
-
+                self.sapphire_acquired = True
+            elif self.item_type == "Coin":
+                wallet += 1
             self.kill()
+        return [self.walljump_acquired, self.doublejump_acquired, self.emerald_acquired,
+                self.ruby_acquired, self.sapphire_acquired]
 
 
 class Arrow(pygame.sprite.Sprite):
@@ -1002,7 +1036,19 @@ while run:
         # update + draw groups
         arrow_group.update()
         spell_group.update()
-        item_group.update()
+        for item in item_group:
+            gathered_item_list = item.update()
+            if not walljump_acquired:
+                walljump_acquired = gathered_item_list[0]
+            if not doublejump_acquired:
+                doublejump_acquired = gathered_item_list[1]
+            if not emerald_acquired:
+                emerald_acquired = gathered_item_list[2]
+            if not ruby_acquired:
+                ruby_acquired = gathered_item_list[3]
+            if not sapphire_acquired:
+                sapphire_acquired = gathered_item_list[4]
+            
         decoration_group.update()
         lava_group.update()
         exit_group.update()
@@ -1043,6 +1089,8 @@ while run:
                 total_ver_scroll = 0
                 level += level_change
                 level_change = 0
+                player_health = player.health
+                player_max_health = player.max_health
                 world_data = reset_level()
                 with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
                     reader = csv.reader(csvfile, delimiter=',')
@@ -1117,7 +1165,6 @@ while run:
                 cast = False
             if event.key == pygame.K_m:
                 map_menu = False
-
     clock.tick(fps)
     pygame.display.update()
 
