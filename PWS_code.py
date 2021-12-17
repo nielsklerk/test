@@ -545,6 +545,21 @@ class Enemy(pygame.sprite.Sprite):
             screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
+class Npc(pygame.sprite.Sprite):
+    def __init__(self, xcoords, ycoords, character):
+        pygame.sprite.Sprite.__init__(self)
+        self.alive = True
+        self.img = pygame.image.load(f'img/NPC/{character}.png')
+        self.img = pygame.transform.scale(self.img,
+                                          (self.img.get_width() * 2, self.img.get_height() * 2))
+        self.rect = self.image.get_rect()
+        self.rect.center = (xcoords, ycoords)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+
+    def update(self):
+        screen.blit (self.img, self.rect)
+
 class World:
     def __init__(self):
         self.obstacle_list = []
@@ -810,6 +825,9 @@ class World:
                     elif one_tile == 33:
                         item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Money")
                         item_group.add(item)
+                    elif one_tile == 34:
+                        Npc = Npc(5, False, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
+                        Npc_group.add(Npc)
                     elif one_tile == 38:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", 45)
@@ -1058,6 +1076,9 @@ while run:
         decoration_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
+
+        Npc.update()
+        Npc.draw()
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
