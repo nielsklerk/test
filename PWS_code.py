@@ -16,7 +16,7 @@ screen_width = 1024
 screen_height = 576
 
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("PWS")
+pygame.display.set_caption("Re:Birth")
 
 tile_size = 64
 tile_types = 44
