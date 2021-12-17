@@ -556,11 +556,13 @@ class Npc(pygame.sprite.Sprite):
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        self.update_time = pygame.time.get_ticks()
 
     def update(self):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
         screen.blit (self.img, self.rect)
+
 
 class World:
     def __init__(self):
@@ -828,8 +830,8 @@ class World:
                         item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Money")
                         item_group.add(item)
                     elif one_tile == 34:
-                        Npc = Npc(5, False, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
-                        Npc_group.add(Npc)
+                        npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
+                        npc_group.add(Npc)
                     elif one_tile == 38:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", 45)
@@ -1007,6 +1009,7 @@ decoration_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+npc_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width // 2 - 130, screen_height // 2 + 50, exit_img)
@@ -1053,6 +1056,10 @@ while run:
             enemy.update()
             enemy.draw()
 
+        for Npc in npc_group:
+            Npc.update()
+            Npc.draw()
+
         # update + draw groups
         arrow_group.update()
         spell_group.update()
@@ -1078,9 +1085,6 @@ while run:
         decoration_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
-
-        Npc.update()
-        Npc.draw()
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
