@@ -1123,7 +1123,7 @@ while run:
                 run = False
     else:
         screen.fill((50, 50, 50))
-        draw_text("A Tiny Little Game", font, (0, 0, 0), 250, 60)
+        draw_text("Re: Birth", font, (0, 0, 0), 250, 60)
         if start_btn.draw():
             game_started = True
         if exit_btn.draw():
