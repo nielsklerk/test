@@ -3,6 +3,7 @@ from pygame import mixer
 import os
 import csv
 import random
+import math
 
 pygame.init()
 mixer.init()
@@ -41,6 +42,7 @@ moving_left = False
 moving_right = False
 shoot = False
 cast = False
+attack = False
 walljump_acquired = False
 doublejump_acquired = False
 emerald_acquired = False
@@ -144,7 +146,7 @@ def reset_level():
     exit_group.empty()
     enemy_group.empty()
     data = []
-    for one_row in range(rows):
+    for _ in range(rows):
         p = [-1] * cols
         data.append(p)
     return data
@@ -185,6 +187,7 @@ class Player(pygame.sprite.Sprite):
         self.speed = 8
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
+        self.melee_cooldown = 0
         self.direction = 1
         self.jump = False
         self.amount_jumps = 2
@@ -202,7 +205,7 @@ class Player(pygame.sprite.Sprite):
         self.invincibility = 60
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall', 'Melee']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
@@ -228,6 +231,8 @@ class Player(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
         if self.cast_cooldown > 0:
             self.cast_cooldown -= 1
+        if self.melee_cooldown > 0:
+            self.melee_cooldown -= 1
 
     def move(self, moving_left_direction, moving_right_direction):
         dx = 0
@@ -325,7 +330,8 @@ class Player(pygame.sprite.Sprite):
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= 0:
             self.rect.top = scroll_threshold_ver
             d_scroll_ver -= self.vel_y
-        if self.rect.bottom > screen_height - scroll_threshold_ver and total_ver_scroll < (world.level_height * tile_size) - screen_height:
+        if self.rect.bottom > screen_height - scroll_threshold_ver and\
+                total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
@@ -350,6 +356,17 @@ class Player(pygame.sprite.Sprite):
             self.action = new_action
             self.index = 0
             self.update_time = pygame.time.get_ticks()
+
+    def melee(self):
+        if self.melee_cooldown == 0:
+            self.melee_cooldown = 10
+            self.rect.centerx -= 5 * self.direction
+            if enemy in enemy_group:
+                if math.sqrt(((enemy.rect.centerx - self.rect.centerx) ** 2) +
+                             (enemy.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
+                    if enemy.rect.centerx > self.rect.centerx * self.direction:
+                        enemy.health -= 10
+                        self.rect.centerx -= 20 * self.direction
 
     def check_alive(self):
         if self.health <= 0:
@@ -392,16 +409,15 @@ class Player(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, health, flying, xcoords, ycoords, enemy_type, vision_height, vision_width, speed):
+    def __init__(self, flying, xcoords, ycoords, enemy_type, vision_height, vision_width):
         pygame.sprite.Sprite.__init__(self)
         self.world = 1
         self.alive = True
         self.health = 5
         self.flying = flying
-        self.speed = 2
+        self.speed = 4
         self.enemy_type = enemy_type
         self.direction = 1
-        self.in_air = True
         self.flip = False
         self.vel_y = 0
         self.animation_list = []
@@ -413,11 +429,13 @@ class Enemy(pygame.sprite.Sprite):
         self.vision = pygame.Rect(0, 0, vision_width, vision_height)
         self.idling = False
         self.idling_counter = 0
-        if current_world == 3:
+        if current_world == 0:
+            self.world = 0
+        elif current_world == 2:
             self.world = 1
-        elif current_world == 4:
+        elif current_world == 3:
             self.world = 2
-        elif current_world == 5:
+        elif current_world == 4:
             self.world = 3
         if self.world > 0:
             animation_types = ['Idle']
@@ -426,8 +444,9 @@ class Enemy(pygame.sprite.Sprite):
                 # count number of files in the folder
                 num_of_frames = len(os.listdir(f'img/Enemy/Enemy{self.enemy_type}/World{self.world}/{animation}'))
                 for i in range(num_of_frames):
-                    enemy_img = pygame.image.load(f'img/Enemy/Enemy{self.enemy_type}/World{self.world}/{animation}/{i}.png')
-                    enemy_img = pygame.transform.scale(enemy_img, (tile_size, tile_size))
+                    enemy_img = pygame.transform.scale(
+                        pygame.image.load(f'img/Enemy/Enemy{self.enemy_type}/World{self.world}/{animation}/{i}.png'),
+                        (tile_size, tile_size))
                     temp_list.append(enemy_img)
                 self.animation_list.append(temp_list)
             self.image = self.animation_list[self.action][self.index]
@@ -435,17 +454,16 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.center = (xcoords, ycoords)
             self.width = self.image.get_width()
             self.height = self.image.get_height()
-        self.vision = pygame.Rect(0, 0, vision_width, vision_height)
         self.move_counter = 0
 
-    def move(self, moving_left, moving_right):
+    def move(self, mov_left, mov_right):
         dx = 0
         dy = 0
-        if moving_left:
+        if mov_left:
             dx = -self.speed
             self.flip = True
             self.direction = -1
-        if moving_right:
+        if mov_right:
             dx = self.speed
             self.flip = False
             self.direction = 1
@@ -454,13 +472,11 @@ class Enemy(pygame.sprite.Sprite):
             self.vel_y += gravity
             if self.vel_y > 10:
                 self.vel_y = 10
-                self.in_air = True
             dy += self.vel_y
 
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
-                self.direction *= -1
             if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 if self.vel_y < 0:
                     dy = one_tile[1].bottom - self.rect.top
@@ -482,6 +498,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.idling_counter = 50
             if self.vision.colliderect(player.rect):
                 self.attack()
+                self.idling = True
             else:
                 if not self.idling:
                     if self.direction == 1:
@@ -492,7 +509,7 @@ class Enemy(pygame.sprite.Sprite):
                     self.move(ai_moving_left, ai_moving_right)
                     self.update_action(0)  # 1: run
                     self.move_counter += 1
-                    self.vision.center = (self.rect.centerx + 75 * self.direction, self.rect.centery)
+                    self.vision.center = (self.rect.centerx, self.rect.centery)
 
                     if self.move_counter > tile_size:
                         self.direction *= -1
@@ -507,6 +524,18 @@ class Enemy(pygame.sprite.Sprite):
 
     def attack(self):
         if self.enemy_type == 1:
+            if -2 <= (self.rect.centery - player.rect.top) <= 2:
+                self.rect.centery = player.rect.top
+            elif self.rect.centery > player.rect.top:
+                self.rect.centery -= 2
+            elif self.rect.centery < player.rect.top:
+                self.rect.centery += 2
+            if self.rect.centerx > player.rect.centerx:
+                self.move(True, False)
+            elif self.rect.centerx < player.rect.centerx:
+                self.move(False, True)
+
+        elif self.enemy_type == 2:
             pass
 
     def update_action(self, new_action):
@@ -548,7 +577,6 @@ class Enemy(pygame.sprite.Sprite):
 class Npc(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, character):
         pygame.sprite.Sprite.__init__(self)
-        self.alive = True
         self.img = pygame.image.load(f'img/NPC/{character}.png')
         self.img = pygame.transform.scale(self.img,
                                           (self.img.get_width() * 2, self.img.get_height() * 2))
@@ -561,7 +589,74 @@ class Npc(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
-        screen.blit (self.img, self.rect)
+        screen.blit(self.img, self.rect)
+
+
+class Boss(pygame.sprite.Sprite):
+    def __init__(self, xcoords, ycoords, which_world):
+        pygame.sprite.Sprite.__init__(self)
+        self.alive = True
+        self.speed = 2
+        self.health = 5
+        self.world = which_world
+        self.direction = 1
+        self.flip = False
+        self.vel_y = 0
+        self.animation_list = []
+        self.index = 0
+        self.action = 0
+        animation_types = ['Idle', 'Attack1', 'Attack2', 'Attack3', 'Death']
+        for animation in animation_types:
+            temp_list = []
+            # count number of files in the folder
+            num_of_frames = len(os.listdir(f'img/Player/{animation}'))
+            for i in range(num_of_frames):
+                player_img = pygame.image.load(f'img/Player/{animation}/{i}.png')
+                player_img = pygame.transform.scale(player_img,
+                                                    (player_img.get_width() * 2, player_img.get_height() * 2))
+                temp_list.append(player_img)
+            self.animation_list.append(temp_list)
+        self.image = self.animation_list[self.action][self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (xcoords, ycoords)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.update_time = pygame.time.get_ticks()
+
+    def update_action(self, new_action):
+        if new_action != self.action:
+            self.action = new_action
+            self.index = 0
+            self.update_time = pygame.time.get_ticks()
+
+    def check_alive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+            self.update_action(0)
+
+    def update_animation(self):
+        animation_cooldown = 100
+        self.image = self.animation_list[self.action][self.index]
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.index += 1
+        if self.index >= len(self.animation_list[self.action]):
+            if self.action == 3:
+                self.index = len(self.animation_list[self.action]) - 1
+            else:
+                self.index = 0
+
+    def update(self):
+        self.update_animation()
+        self.check_alive()
+        if not self.alive:
+            self.kill()
+
+    def draw(self):
+        if self.alive:
+            screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 class World:
     def __init__(self):
@@ -811,9 +906,9 @@ class World:
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 27:
-                        enemy = Enemy(5, False, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off,
-                                      1, 150, 300, 5)
-                        enemy_group.add(enemy)
+                        one_enemy = Enemy(True, xcoords * tile_size + self.hor_off,
+                                          ycoords * tile_size + self.ver_off, 1, 300, 600)
+                        enemy_group.add(one_enemy)
                     elif one_tile == 28:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 29:
@@ -823,14 +918,16 @@ class World:
                     elif one_tile == 31:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 32:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Health")
-                        item_group.add(item)
+                        one_item = Item(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, "Health")
+                        item_group.add(one_item)
                     elif one_tile == 33:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Money")
-                        item_group.add(item)
+                        one_item = Item(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, "Money")
+                        item_group.add(one_item)
                     elif one_tile == 34:
-                        npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
-                        npc_group.add(Npc)
+                        npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, 'joseph')
+                        npc_group.add(npc)
                     elif one_tile == 38:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", 45)
@@ -852,12 +949,13 @@ class World:
                         lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
                         lava_group.add(lava)
                     elif one_tile == 42:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Doublejump")
-                        item_group.add(item)
+                        one_item = Item(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, "Doublejump")
+                        item_group.add(one_item)
                     elif one_tile == 43:
-                        item = Item(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, "Walljump")
-                        item_group.add(item)
-
+                        one_item = Item(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, "Walljump")
+                        item_group.add(one_item)
                     elif -2 <= one_tile <= -2:
                         decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         decoration_group.add(decoration)
@@ -1009,6 +1107,7 @@ lava_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 npc_group = pygame.sprite.Group()
+boss_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width // 2 - 130, screen_height // 2 + 50, exit_img)
@@ -1074,16 +1173,19 @@ while run:
                 ruby_acquired = gathered_item_list[3]
             if not sapphire_acquired:
                 sapphire_acquired = gathered_item_list[4]
-            
         decoration_group.update()
         lava_group.update()
         exit_group.update()
+        npc_group.update()
+        boss_group.update()
         arrow_group.draw(screen)
         spell_group.draw(screen)
         item_group.draw(screen)
         decoration_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
+        npc_group.draw(screen)
+        boss_group.draw(screen)
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
@@ -1097,6 +1199,9 @@ while run:
             if shoot:
                 player.shoot()
                 player.update_action(3)
+            if attack:
+                player.melee()
+                player.update_action(7)
             if player.in_air:
                 player.update_action(2)
             if player.touching_wall and player.in_air:
@@ -1133,6 +1238,7 @@ while run:
             scroll_hor = 0
             draw_text("You died", font, (0, 0, 0), 250, 60)
             if respawn_btn.draw():
+                player_health = player_max_health
                 total_hor_scroll = 0
                 total_ver_scroll = 0
                 world_data = reset_level()
@@ -1177,6 +1283,8 @@ while run:
                 map_menu = True
             if event.key == pygame.K_DELETE:
                 player.alive = False
+            if event.key == pygame.K_x:
+                attack = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -1191,6 +1299,9 @@ while run:
                 cast = False
             if event.key == pygame.K_m:
                 map_menu = False
+            if event.key == pygame.K_x:
+                attack = False
+
     clock.tick(fps)
     pygame.display.update()
 
