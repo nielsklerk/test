@@ -415,7 +415,7 @@ class Enemy(pygame.sprite.Sprite):
         self.alive = True
         self.health = 5
         self.flying = flying
-        self.speed = 2
+        self.speed = 4
         self.enemy_type = enemy_type
         self.direction = 1
         self.flip = False
@@ -452,7 +452,6 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.center = (xcoords, ycoords)
             self.width = self.image.get_width()
             self.height = self.image.get_height()
-        self.vision = pygame.Rect(0, 0, vision_width, vision_height)
         self.move_counter = 0
 
     def move(self, mov_left, mov_right):
@@ -591,12 +590,70 @@ class Npc(pygame.sprite.Sprite):
         self.rect.y += int(scroll_ver)
         screen.blit(self.img, self.rect)
 
+
 class Boss(pygame.sprite.Sprite):
-    def __init__(self, xcoords, ycoords, world):
+    def __init__(self, xcoords, ycoords, which_world):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         self.health = 5
+        self.world = which_world
+        self.direction = 1
+        self.flip = False
+        self.vel_y = 0
+        self.animation_list = []
+        self.index = 0
+        self.action = 0
+        animation_types = ['Idle', 'Attack1', 'Attack2', 'Attack3', 'Death']
+        for animation in animation_types:
+            temp_list = []
+            # count number of files in the folder
+            num_of_frames = len(os.listdir(f'img/Player/{animation}'))
+            for i in range(num_of_frames):
+                player_img = pygame.image.load(f'img/Player/{animation}/{i}.png')
+                player_img = pygame.transform.scale(player_img,
+                                                    (player_img.get_width() * 2, player_img.get_height() * 2))
+                temp_list.append(player_img)
+            self.animation_list.append(temp_list)
+        self.image = self.animation_list[self.action][self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (xcoords, ycoords)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
 
+        def update_action(self, new_action):
+            if new_action != self.action:
+                self.action = new_action
+                self.index = 0
+                self.update_time = pygame.time.get_ticks()
+
+        def check_alive(self):
+            if self.health <= 0:
+                self.health = 0
+                self.speed = 0
+                self.alive = False
+                self.update_action(0)
+
+        def update_animation(self):
+            animation_cooldown = 100
+            self.image = self.animation_list[self.action][self.index]
+            if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+                self.update_time = pygame.time.get_ticks()
+                self.index += 1
+            if self.index >= len(self.animation_list[self.action]):
+                if self.action == 3:
+                    self.index = len(self.animation_list[self.action]) - 1
+                else:
+                    self.index = 0
+
+        def update(self):
+            self.update_animation()
+            self.check_alive()
+            if not self.alive:
+                self.kill()
+
+        def draw(self):
+            if self.alive:
+                screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
 class World:
@@ -847,8 +904,8 @@ class World:
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 27:
-                        one_enemy = Enemy(5, True, xcoords * tile_size + self.hor_off,
-                                          ycoords * tile_size + self.ver_off, 1, 300, 600, 5)
+                        one_enemy = Enemy(True, xcoords * tile_size + self.hor_off,
+                                          ycoords * tile_size + self.ver_off, 1, 300, 600)
                         enemy_group.add(one_enemy)
                     elif one_tile == 28:
                         self.obstacle_list.append(tile_data)
@@ -1048,6 +1105,7 @@ lava_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 npc_group = pygame.sprite.Group()
+boss_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width // 2 - 130, screen_height // 2 + 50, exit_img)
@@ -1113,16 +1171,19 @@ while run:
                 ruby_acquired = gathered_item_list[3]
             if not sapphire_acquired:
                 sapphire_acquired = gathered_item_list[4]
-            
         decoration_group.update()
         lava_group.update()
         exit_group.update()
+        npc_group.update()
+        boss_group.update()
         arrow_group.draw(screen)
         spell_group.draw(screen)
         item_group.draw(screen)
         decoration_group.draw(screen)
         lava_group.draw(screen)
         exit_group.draw(screen)
+        npc_group.draw(screen)
+        boss_group.draw(screen)
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
