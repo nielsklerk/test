@@ -429,11 +429,13 @@ class Enemy(pygame.sprite.Sprite):
         self.vision = pygame.Rect(0, 0, vision_width, vision_height)
         self.idling = False
         self.idling_counter = 0
-        if current_world == 3:
+        if current_world == 0:
+            self.world = 0
+        elif current_world == 2:
             self.world = 1
-        elif current_world == 4:
+        elif current_world == 3:
             self.world = 2
-        elif current_world == 5:
+        elif current_world == 4:
             self.world = 3
         if self.world > 0:
             animation_types = ['Idle']
@@ -575,7 +577,6 @@ class Enemy(pygame.sprite.Sprite):
 class Npc(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, character):
         pygame.sprite.Sprite.__init__(self)
-        self.alive = True
         self.img = pygame.image.load(f'img/NPC/{character}.png')
         self.img = pygame.transform.scale(self.img,
                                           (self.img.get_width() * 2, self.img.get_height() * 2))
