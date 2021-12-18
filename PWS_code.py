@@ -563,7 +563,6 @@ class Npc(pygame.sprite.Sprite):
         self.rect.y += int(scroll_ver)
         screen.blit (self.img, self.rect)
 
-
 class World:
     def __init__(self):
         self.obstacle_list = []
