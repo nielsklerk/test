@@ -1,5 +1,6 @@
 import pygame
 import csv
+import os
 
 pygame.init()
 
@@ -15,7 +16,7 @@ rows = 27
 cols = 48
 level = 0
 tile_size = 64
-tile_types = 44
+tile_types = len(os.listdir(f'img/Tile/'))
 current_tile = 0
 
 scroll_left = False
@@ -133,7 +134,7 @@ while run:
     elif 27 <= level <= 37:
         draw_bg(3)
     elif 38 <= level <= 48:
-        pass
+        draw_bg(4)
 
     draw_world()
     draw_grid()
