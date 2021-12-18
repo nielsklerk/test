@@ -595,6 +595,7 @@ class Boss(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, which_world):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
+        self.speed = 2
         self.health = 5
         self.world = which_world
         self.direction = 1
@@ -619,41 +620,42 @@ class Boss(pygame.sprite.Sprite):
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        self.update_time = pygame.time.get_ticks()
 
-        def update_action(self, new_action):
-            if new_action != self.action:
-                self.action = new_action
+    def update_action(self, new_action):
+        if new_action != self.action:
+            self.action = new_action
+            self.index = 0
+            self.update_time = pygame.time.get_ticks()
+
+    def check_alive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+            self.update_action(0)
+
+    def update_animation(self):
+        animation_cooldown = 100
+        self.image = self.animation_list[self.action][self.index]
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.index += 1
+        if self.index >= len(self.animation_list[self.action]):
+            if self.action == 3:
+                self.index = len(self.animation_list[self.action]) - 1
+            else:
                 self.index = 0
-                self.update_time = pygame.time.get_ticks()
 
-        def check_alive(self):
-            if self.health <= 0:
-                self.health = 0
-                self.speed = 0
-                self.alive = False
-                self.update_action(0)
+    def update(self):
+        self.update_animation()
+        self.check_alive()
+        if not self.alive:
+            self.kill()
 
-        def update_animation(self):
-            animation_cooldown = 100
-            self.image = self.animation_list[self.action][self.index]
-            if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-                self.update_time = pygame.time.get_ticks()
-                self.index += 1
-            if self.index >= len(self.animation_list[self.action]):
-                if self.action == 3:
-                    self.index = len(self.animation_list[self.action]) - 1
-                else:
-                    self.index = 0
-
-        def update(self):
-            self.update_animation()
-            self.check_alive()
-            if not self.alive:
-                self.kill()
-
-        def draw(self):
-            if self.alive:
-                screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+    def draw(self):
+        if self.alive:
+            screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
 class World:
