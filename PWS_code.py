@@ -474,11 +474,11 @@ class Enemy(pygame.sprite.Sprite):
                         (tile_size, tile_size))
                     temp_list.append(enemy_img)
                 self.animation_list.append(temp_list)
-            self.image = self.animation_list[self.action][self.index]
-            self.rect = self.image.get_rect()
-            self.rect.center = (xcoords, ycoords)
-            self.width = self.image.get_width()
-            self.height = self.image.get_height()
+        self.image = self.animation_list[self.action][self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (xcoords, ycoords)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         self.move_counter = 0
 
     def move(self, mov_left, mov_right):
@@ -544,9 +544,6 @@ class Enemy(pygame.sprite.Sprite):
                     if self.idling_counter <= 0:
                         self.idling = False
 
-            self.rect.x += int(scroll_hor)
-            self.rect.y += int(scroll_ver)
-
     def attack(self):
         if self.enemy_type == 1:
             if -2 <= (self.rect.centery - player.rect.top) <= 2:
@@ -602,6 +599,8 @@ class Enemy(pygame.sprite.Sprite):
         self.check_alive()
         if not self.alive:
             self.kill()
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -1501,6 +1500,7 @@ while run:
                 map_menu = False
             if event.key == pygame.K_x:
                 attack = False
+    print(enemy_group)
     clock.tick(fps)
     pygame.display.update()
 
