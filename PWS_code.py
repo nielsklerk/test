@@ -376,13 +376,13 @@ class Player(pygame.sprite.Sprite):
         if self.melee_cooldown == 0:
             self.melee_cooldown = 10
             self.rect.centerx -= 5 * self.direction
-            if enemy in enemy_group:
+            for enemy in enemy_group:
                 if math.sqrt(((enemy.rect.centerx - self.rect.centerx) ** 2) +
                              (enemy.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
                     if enemy.rect.centerx > self.rect.centerx * self.direction:
                         enemy.health -= 10
                         self.rect.centerx -= 20 * self.direction
-            if boss in boss_group:
+            for boss in boss_group:
                 if math.sqrt(((boss.rect.centerx - self.rect.centerx) ** 2) +
                              (boss.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
                     if boss.rect.centerx > self.rect.centerx * self.direction:
@@ -1499,7 +1499,6 @@ while run:
                 map_menu = False
             if event.key == pygame.K_x:
                 attack = False
-    print(enemy_group)
     clock.tick(fps)
     pygame.display.update()
 
