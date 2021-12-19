@@ -96,6 +96,8 @@ for x in range(tile_types):
 # projectile images
 arrow_img = pygame.transform.scale(pygame.image.load("img/Projectiles/arrow.png"), (20, 20))
 spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
+fire_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/fire_attack.png"), (116, 98))
+ball_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
 
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
@@ -148,6 +150,7 @@ def reset_level():
     npc_group.empty()
     boss_group.empty()
     slime_group.empty()
+    fire_attack_group.empty()
     data = []
     for _ in range(rows):
         p = [-1] * cols
@@ -349,8 +352,17 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+        if pygame.sprite.spritecollide(self, slime_group, False) and self.invincibility <= 0:
+            self.health -= 1
+            self.invincibility = 60
         if pygame.sprite.spritecollide(self, lava_group, False):
             self.health = 0
+        if pygame.sprite.spritecollide(self, fire_attack_group, False) and self.invincibility <= 0:
+            self.health -= 2
+            self.invincibility = 60
+        if pygame.sprite.spritecollide(self, ball_attack_group, False) and self.invincibility <= 0:
+            self.health -= 2
+            self.invincibility = 60
 
         return d_scroll_hor, d_scroll_ver, level_change_factor, previous_level_number
 
@@ -369,6 +381,12 @@ class Player(pygame.sprite.Sprite):
                              (enemy.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
                     if enemy.rect.centerx > self.rect.centerx * self.direction:
                         enemy.health -= 10
+                        self.rect.centerx -= 20 * self.direction
+            if boss in boss_group:
+                if math.sqrt(((boss.rect.centerx - self.rect.centerx) ** 2) +
+                             (boss.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
+                    if boss.rect.centerx > self.rect.centerx * self.direction:
+                        boss.health -= 10
                         self.rect.centerx -= 20 * self.direction
 
     def check_alive(self):
@@ -415,9 +433,13 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, flying, xcoords, ycoords, enemy_type, vision_height, vision_width):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.health = 5
         self.flying = flying
-        self.speed = 4
+        if enemy_type == 1:
+            self.speed = 4
+            self.health = 5
+        elif enemy_type == 2:
+            self.speed = 2
+            self.health = 10
         self.enemy_type = enemy_type
         self.direction = 1
         self.flip = False
@@ -452,11 +474,11 @@ class Enemy(pygame.sprite.Sprite):
                         (tile_size, tile_size))
                     temp_list.append(enemy_img)
                 self.animation_list.append(temp_list)
-            self.image = self.animation_list[self.action][self.index]
-            self.rect = self.image.get_rect()
-            self.rect.center = (xcoords, ycoords)
-            self.width = self.image.get_width()
-            self.height = self.image.get_height()
+        self.image = self.animation_list[self.action][self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (xcoords, ycoords)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         self.move_counter = 0
 
     def move(self, mov_left, mov_right):
@@ -522,9 +544,6 @@ class Enemy(pygame.sprite.Sprite):
                     if self.idling_counter <= 0:
                         self.idling = False
 
-            self.rect.x += int(scroll_hor)
-            self.rect.y += int(scroll_ver)
-
     def attack(self):
         if self.enemy_type == 1:
             if -2 <= (self.rect.centery - player.rect.top) <= 2:
@@ -544,6 +563,10 @@ class Enemy(pygame.sprite.Sprite):
                 slime = Slime(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                               self.direction)
                 slime_group.add(slime)
+            if self.rect.centerx > player.rect.centerx:
+                self.move(True, False)
+            elif self.rect.centerx < player.rect.centerx:
+                self.move(False, True)
             self.slime_cooldown -= 1
 
     def update_action(self, new_action):
@@ -576,6 +599,8 @@ class Enemy(pygame.sprite.Sprite):
         self.check_alive()
         if not self.alive:
             self.kill()
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -607,7 +632,6 @@ class Boss(pygame.sprite.Sprite):
         self.alive = True
         self.health = 5
         self.speed = 4
-        self.enemy_type = enemy_type
         self.direction = 1
         self.flip = False
         self.vel_y = 0
@@ -622,18 +646,8 @@ class Boss(pygame.sprite.Sprite):
         self.idling = False
         self.idling_counter = 0
         self.boss = which_boss
-        animation_types = ['Idle', 'Attack1', 'Attack2', 'Attack3', 'Death']
-        for animation in animation_types:
-            temp_list = []
-            # count number of files in the folder
-            num_of_frames = len(os.listdir(f'img/Enemy/Boss/World{self.boss}/{animation}'))
-            for i in range(num_of_frames):
-                enemy_img = pygame.transform.scale(
-                    pygame.image.load(f'img/Enemy/Boss/World{self.boss}/{animation}/{i}.png'),
-                    (tile_size, tile_size))
-                temp_list.append(enemy_img)
-        self.animation_list.append(temp_list)
-        self.image = self.animation_list[self.action][self.index]
+        self.image = pygame.image.load(f'img/Enemy/Boss/World{self.boss}/0.png')
+        self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.boss}/0.png'), (318, 318))
         self.rect = self.image.get_rect()
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
@@ -703,41 +717,31 @@ class Boss(pygame.sprite.Sprite):
                     if self.idling_counter <= 0:
                         self.idling = False
 
-            self.rect.x += int(scroll_hor)
-            self.rect.y += int(scroll_ver)
-
     def attack(self):
         if self.attack_cooldown <= 0:
-            self.attack_cooldown = 1000
-
-    def update_action(self, new_action):
-        if new_action != self.action:
-            self.action = new_action
-            self.index = 0
-            self.update_time = pygame.time.get_ticks()
+            self.attack_cooldown = 500
+            n = random.randint(1, 2)
+            if n == 1:
+                for n in range(-3, 4):
+                    fire_ball = FireAttack(self.rect.centerx + n * 250, self.rect.y - 200)
+                    fire_attack_group.add(fire_ball)
+            elif x == 2:
+                ball = BallAttack(self.rect.centerx, self.rect.y, 1)
+                ball_attack_group.add(ball)
+                ball = BallAttack(self.rect.centerx, self.rect.y, -1)
+                ball_attack_group.add(ball)
 
     def check_alive(self):
         if self.health <= 0:
             self.health = 0
             self.speed = 0
             self.alive = False
-            self.update_action(0)
-
-    def update_animation(self):
-        animation_cooldown = 100
-        self.image = self.animation_list[self.action][self.index]
-        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-            self.update_time = pygame.time.get_ticks()
-            self.index += 1
-        if self.index >= len(self.animation_list[self.action]):
-            if self.action == 3:
-                self.index = len(self.animation_list[self.action]) - 1
-            else:
-                self.index = 0
 
     def update(self):
-        self.update_animation()
+        self.attack_cooldown -= 1
         self.check_alive()
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
         if not self.alive:
             self.kill()
 
@@ -1042,10 +1046,26 @@ class World:
                         one_item = Item(xcoords * tile_size + self.hor_off,
                                         ycoords * tile_size + self.ver_off, "Walljump")
                         item_group.add(one_item)
+                    elif one_tile == 44:
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 1)
+                        boss_group.add(one_boss)
+                    elif one_tile == 45:
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 2)
+                        boss_group.add(one_boss)
+                    elif one_tile == 46:
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 3)
+                        boss_group.add(one_boss)
                     elif one_tile == 49:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 50:
                         self.obstacle_list.append(tile_data)
+                    elif one_tile == 51:
+                        one_enemy = Enemy(False, xcoords * tile_size + self.hor_off,
+                                          ycoords * tile_size + self.ver_off, 2, 300, 600)
+                        enemy_group.add(one_enemy)
                     elif -2 <= one_tile <= -2:
                         decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         decoration_group.add(decoration)
@@ -1211,6 +1231,63 @@ class Slime(pygame.sprite.Sprite):
                 self.kill()
 
 
+class FireAttack(pygame.sprite.Sprite):
+    def __init__(self, xcoords, ycoords):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = fire_attack_img
+        self.rect = self.image.get_rect()
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.rect.center = (xcoords, ycoords)
+        self.lifetime = 500
+        self.vel_y = 0
+
+    def update(self):
+        self.vel_y += gravity
+        if self.vel_y > 10:
+            self.vel_y = 10
+        for one_tile in world.obstacle_list:
+            if one_tile[1].colliderect(self.rect.x, self.rect.y + self.vel_y, self.width, self.height):
+                self.vel_y = one_tile[1].top - self.rect.bottom
+        self.rect.y += self.vel_y
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
+        self.lifetime -= 1
+        if self.lifetime <= 0:
+            self.kill()
+
+
+class BallAttack(pygame.sprite.Sprite):
+    def __init__(self, xcoords, ycoords, direction):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = ball_attack_img
+        self.direction = direction
+        self.rect = self.image.get_rect()
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.rect.center = (xcoords, ycoords)
+        self.lifetime = 1000
+        self.vel_y = 0
+        self.speed = 4
+
+    def update(self):
+        self.vel_y += gravity
+        if self.vel_y > 10:
+            self.vel_y = 10
+        for one_tile in world.obstacle_list:
+            if one_tile[1].colliderect(self.rect.x + self.speed * self.direction, self.rect.y, self.width, self.height):
+                self.direction *= -1
+            if one_tile[1].colliderect(self.rect.x, self.rect.y + self.vel_y, self.width, self.height):
+                self.vel_y *= -0.9
+        self.rect.x += self.speed * self.direction
+        self.rect.y += self.vel_y
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
+        self.lifetime -= 1
+        if self.lifetime <= 0:
+            self.kill()
+
+
 # sprite groups
 arrow_group = pygame.sprite.Group()
 spell_group = pygame.sprite.Group()
@@ -1222,6 +1299,8 @@ enemy_group = pygame.sprite.Group()
 npc_group = pygame.sprite.Group()
 boss_group = pygame.sprite.Group()
 slime_group = pygame.sprite.Group()
+fire_attack_group = pygame.sprite.Group()
+ball_attack_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width // 2 - 130, screen_height // 2 + 50, exit_img)
@@ -1267,6 +1346,10 @@ while run:
             enemy.ai()
             enemy.update()
             enemy.draw()
+        for boss in boss_group:
+            boss.ai()
+            boss.update()
+            boss.draw()
 
         # update + draw groups
         arrow_group.update()
@@ -1287,8 +1370,9 @@ while run:
         lava_group.update()
         exit_group.update()
         npc_group.update()
-        boss_group.update()
         slime_group.update()
+        fire_attack_group.update()
+        ball_attack_group.update()
         arrow_group.draw(screen)
         spell_group.draw(screen)
         item_group.draw(screen)
@@ -1296,8 +1380,9 @@ while run:
         lava_group.draw(screen)
         exit_group.draw(screen)
         npc_group.draw(screen)
-        boss_group.draw(screen)
         slime_group.draw(screen)
+        fire_attack_group.draw(screen)
+        ball_attack_group.draw(screen)
 
         scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
         total_hor_scroll -= scroll_hor
@@ -1413,7 +1498,7 @@ while run:
                 map_menu = False
             if event.key == pygame.K_x:
                 attack = False
-
+    print(enemy_group)
     clock.tick(fps)
     pygame.display.update()
 
