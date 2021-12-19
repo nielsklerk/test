@@ -720,8 +720,8 @@ class Boss(pygame.sprite.Sprite):
     def attack(self):
         if self.attack_cooldown <= 0:
             self.attack_cooldown = 500
-            x = random.randint(1, 2)
-            if x == 1:
+            n = random.randint(1, 2)
+            if n == 1:
                 for n in range(-3, 4):
                     fire_ball = FireAttack(self.rect.centerx + n * 250, self.rect.y - 200)
                     fire_attack_group.add(fire_ball)
@@ -1048,17 +1048,17 @@ class World:
                                         ycoords * tile_size + self.ver_off, "Walljump")
                         item_group.add(one_item)
                     elif one_tile == 44:
-                        boss = Boss(xcoords * tile_size + self.hor_off,
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
                                         ycoords * tile_size + self.ver_off, 1500, 1000, 1)
-                        boss_group.add(boss)
+                        boss_group.add(one_boss)
                     elif one_tile == 45:
-                        boss = Boss(xcoords * tile_size + self.hor_off,
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
                                         ycoords * tile_size + self.ver_off, 1500, 1000, 2)
-                        boss_group.add(boss)
+                        boss_group.add(one_boss)
                     elif one_tile == 46:
-                        boss = Boss(xcoords * tile_size + self.hor_off,
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
                                         ycoords * tile_size + self.ver_off, 1500, 1000, 3)
-                        boss_group.add(boss)
+                        boss_group.add(one_boss)
                     elif one_tile == 49:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 50:
@@ -1287,7 +1287,6 @@ class BallAttack(pygame.sprite.Sprite):
         self.lifetime -= 1
         if self.lifetime <= 0:
             self.kill()
-
 
 
 # sprite groups
