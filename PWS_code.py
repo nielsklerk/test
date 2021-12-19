@@ -45,12 +45,13 @@ moving_right = False
 shoot = False
 cast = False
 attack = False
-walljump_acquired = False
-doublejump_acquired = False
-emerald_acquired = False
-ruby_acquired = False
-sapphire_acquired = False
+walljump_acquired = True
+doublejump_acquired = True
+emerald_acquired = True
+ruby_acquired = True
+sapphire_acquired = True
 map_menu = False
+inventory = False
 gathered_item_list = []
 
 # scroll variables
@@ -80,6 +81,7 @@ exit_img = pygame.image.load("img/New Piskel.png")
 respawn_img = pygame.image.load("img/New Piskel.png")
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
+inventory_img = pygame.image.load("img/Menu/inventory.png")
 
 # background images
 bg_img_list = []
@@ -364,10 +366,10 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, lava_group, False):
             self.health = 0
         if pygame.sprite.spritecollide(self, fire_attack_group, False) and self.invincibility <= 0:
-            self.health -= 2
+            self.health -= 1
             self.invincibility = 60
         if pygame.sprite.spritecollide(self, ball_attack_group, False) and self.invincibility <= 0:
-            self.health -= 2
+            self.health -= 1
             self.invincibility = 60
 
         return d_scroll_hor, d_scroll_ver, level_change_factor, previous_level_number
@@ -439,10 +441,10 @@ class Enemy(pygame.sprite.Sprite):
         self.flying = flying
         if enemy_type == 1:
             self.speed = 4
-            self.health = 5
+            self.health = 20
         elif enemy_type == 2:
             self.speed = 2
-            self.health = 10
+            self.health = 40
         self.enemy_type = enemy_type
         self.direction = 1
         self.flip = False
@@ -630,7 +632,7 @@ class Npc(pygame.sprite.Sprite):
 
 
 class Boss(pygame.sprite.Sprite):
-    def __init__(self, xcoords, ycoords, vision_height, vision_width, which_boss):
+    def __init__(self, xcoords, ycoords, vision_height, vision_width, which_boss, phase):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
         self.health = 5
@@ -649,8 +651,11 @@ class Boss(pygame.sprite.Sprite):
         self.idling = False
         self.idling_counter = 0
         self.boss = which_boss
-        self.image = pygame.image.load(f'img/Enemy/Boss/World{self.boss}/0.png')
-        self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.boss}/0.png'), (318, 318))
+        self.phase = phase
+        if 1 <= self.boss <= 3:
+            self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.boss}/0.png'), (318, 318))
+        elif self.boss == 4:
+            self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.phase}/0.png'), (318, 318))
         self.rect = self.image.get_rect()
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
@@ -668,12 +673,6 @@ class Boss(pygame.sprite.Sprite):
             dx = self.speed
             self.flip = False
             self.direction = 1
-
-        if not self.flying:
-            self.vel_y += gravity
-            if self.vel_y > 10:
-                self.vel_y = 10
-            dy += self.vel_y
 
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
@@ -743,9 +742,34 @@ class Boss(pygame.sprite.Sprite):
 
     def check_alive(self):
         if self.health <= 0:
-            self.health = 0
-            self.speed = 0
-            self.alive = False
+            if self.boss == 1:
+                self.health = 0
+                self.speed = 0
+                self.alive = False
+                item = Item(self.rect.centerx, self.rect.centery, "Emerald")
+                item_group.add(item)
+            elif self.boss == 2:
+                self.health = 0
+                self.speed = 0
+                self.alive = False
+                item = Item(self.rect.centerx, self.rect.centery, "Ruby")
+                item_group.add(item)
+            elif self.boss == 3:
+                self.health = 0
+                self.speed = 0
+                self.alive = False
+                item = Item(self.rect.centerx, self.rect.centery, "Sapphire")
+                item_group.add(item)
+            elif self.boss == 4:
+                self.health = 0
+                self.speed = 0
+                self.alive = False
+                if self.phase < 3:
+                    self.phase += 1
+                    boss = Boss(self.rect.centerx, self.rect.centery, 1500, 1000, 4, self.phase)
+                    boss_group.add(boss)
+                else:
+                    pass
 
     def update(self):
         self.attack_cooldown -= 1
@@ -1007,8 +1031,8 @@ class World:
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 27:
-                        one_enemy = Enemy(True, xcoords * tile_size + self.hor_off,
-                                          ycoords * tile_size + self.ver_off, 1, 300, 600)
+                        one_enemy = Enemy(False, xcoords * tile_size + self.hor_off,
+                                          ycoords * tile_size + self.ver_off, 2, 300, 600)
                         enemy_group.add(one_enemy)
                     elif one_tile == 28:
                         self.obstacle_list.append(tile_data)
@@ -1059,16 +1083,24 @@ class World:
                         item_group.add(one_item)
                     elif one_tile == 44:
                         one_boss = Boss(xcoords * tile_size + self.hor_off,
-                                        ycoords * tile_size + self.ver_off, 1500, 1000, 1)
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 1, 1)
                         boss_group.add(one_boss)
                     elif one_tile == 45:
                         one_boss = Boss(xcoords * tile_size + self.hor_off,
-                                        ycoords * tile_size + self.ver_off, 1500, 1000, 2)
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 2, 1)
                         boss_group.add(one_boss)
                     elif one_tile == 46:
                         one_boss = Boss(xcoords * tile_size + self.hor_off,
-                                        ycoords * tile_size + self.ver_off, 1500, 1000, 3)
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 3, 1)
                         boss_group.add(one_boss)
+                    elif one_tile == 47:
+                        one_boss = Boss(xcoords * tile_size + self.hor_off,
+                                        ycoords * tile_size + self.ver_off, 1500, 1000, 4, 1)
+                        boss_group.add(one_boss)
+                    elif one_tile == 48:
+                        one_enemy = Enemy(True, xcoords * tile_size + self.hor_off,
+                                          ycoords * tile_size + self.ver_off, 1, 300, 600)
+                        enemy_group.add(one_enemy)
                     elif one_tile == 49:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 50:
@@ -1459,6 +1491,19 @@ while run:
                 screen.blit(map_background_img, (0, 0))
                 screen.blit(map_img, (0, 0))
 
+            elif inventory:
+                screen.blit(inventory_img, (screen_width - inventory_img.get_width(), 0))
+                if emerald_acquired:
+                    screen.blit(pygame.transform.scale(emerald_img, (28, 28)), (884, 14))
+                if ruby_acquired:
+                    screen.blit(pygame.transform.scale(ruby_img, (28, 28)), (884, 47))
+                if sapphire_acquired:
+                    screen.blit(pygame.transform.scale(sapphire_img, (18, 28)), (889, 80))
+                if doublejump_acquired:
+                    screen.blit(pygame.transform.scale(double_jump_item, (28, 28)), (916, 14))
+                if walljump_acquired:
+                    screen.blit(pygame.transform.scale(wall_jump_item, (28, 28)), (916, 47))
+
             if level_change != 0:
                 total_hor_scroll = 0
                 total_ver_scroll = 0
@@ -1529,6 +1574,8 @@ while run:
                 player.alive = False
             if event.key == pygame.K_x:
                 attack = True
+            if event.key == pygame.K_i:
+                inventory = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -1545,6 +1592,9 @@ while run:
                 map_menu = False
             if event.key == pygame.K_x:
                 attack = False
+            if event.key == pygame.K_i:
+                inventory = False
+    print(pygame.mouse.get_pos())
     clock.tick(fps)
     pygame.display.update()
 
