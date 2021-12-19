@@ -33,6 +33,8 @@ hor_offset = 0
 ver_offset = 0
 player_health = 10
 player_max_health = 10
+player_mana = 10
+player_max_mana = 10
 wallet = 0
 
 gravity = 0.75
@@ -97,12 +99,14 @@ for x in range(tile_types):
 arrow_img = pygame.transform.scale(pygame.image.load("img/Projectiles/arrow.png"), (20, 20))
 spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
 fire_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/fire_attack.png"), (116, 98))
-ball_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"), (50, 50))
+ball_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/ball_attack.png"), (50, 50))
+wall_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/wall_attack.png"), (32, 64))
 
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
 max_health_img = pygame.transform.scale(pygame.image.load("img/Item/max_heart.png"), (20, 20))
-mana_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (10, 10))
+mana_img = pygame.transform.scale(pygame.image.load("img/Item/mana.png"), (20, 20))
+max_mana_img = pygame.transform.scale(pygame.image.load("img/Item/max_mana.png"), (20, 20))
 money_img = pygame.transform.scale(pygame.image.load("img/Item/coin.png"), (20, 20))
 wall_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Wall_jump.png"), (tile_size, tile_size))
 double_jump_item = pygame.transform.scale(pygame.image.load("img/Item/Double_jump.png"), (tile_size, tile_size))
@@ -190,6 +194,9 @@ class Player(pygame.sprite.Sprite):
         self.alive = True
         self.health = player_health
         self.max_health = player_max_health
+        self.mana = player_mana
+        self.max_mana = player_max_mana
+        self.wallet = wallet
         self.speed = 8
         self.shoot_cooldown = 0
         self.cast_cooldown = 0
@@ -228,7 +235,6 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
         self.height = self.image.get_height()
-        self.mana = 10
 
     def update(self):
         self.update_animation()
@@ -285,11 +291,11 @@ class Player(pygame.sprite.Sprite):
         else:
             self.slide_factor = 1
 
-        self.vel_y += gravity
-        if self.vel_y > 10:
-            self.vel_y = 10
+        self.vel_y += gravity * self.slide_factor
+        if self.vel_y > 10 * self.slide_factor:
+            self.vel_y = 10 * self.slide_factor
             self.in_air = True
-        dy += self.vel_y * self.slide_factor
+        dy += self.vel_y
 
         for one_tile in world.obstacle_list:
             if one_tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
@@ -303,7 +309,7 @@ class Player(pygame.sprite.Sprite):
                 elif self.direction < 0:
                     self.rect.left = one_tile[1].right + 1
         for one_tile in world.obstacle_list:
-            if one_tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+            if one_tile[1].colliderect(self.rect.x, self.rect.y + dy + gravity, self.width, self.height):
                 if self.vel_y < 0:
                     self.vel_y = d_scroll_ver
                     dy = one_tile[1].bottom - self.rect.top + 5
@@ -375,19 +381,16 @@ class Player(pygame.sprite.Sprite):
     def melee(self):
         if self.melee_cooldown == 0:
             self.melee_cooldown = 10
-            self.rect.centerx -= 5 * self.direction
             for enemy in enemy_group:
                 if math.sqrt(((enemy.rect.centerx - self.rect.centerx) ** 2) +
                              (enemy.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
                     if enemy.rect.centerx > self.rect.centerx * self.direction:
                         enemy.health -= 10
-                        self.rect.centerx -= 20 * self.direction
             for boss in boss_group:
                 if math.sqrt(((boss.rect.centerx - self.rect.centerx) ** 2) +
                              (boss.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
                     if boss.rect.centerx > self.rect.centerx * self.direction:
                         boss.health -= 10
-                        self.rect.centerx -= 20 * self.direction
 
     def check_alive(self):
         if self.health <= 0:
@@ -417,7 +420,7 @@ class Player(pygame.sprite.Sprite):
             # shoot_fx.play()
 
     def cast(self):
-        if self.cast_cooldown == 0:
+        if self.cast_cooldown == 0 and self.mana > 0:
             self.cast_cooldown = 100
             spell = Spell(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
@@ -719,17 +722,24 @@ class Boss(pygame.sprite.Sprite):
 
     def attack(self):
         if self.attack_cooldown <= 0:
-            self.attack_cooldown = 500
-            n = random.randint(1, 2)
+            self.attack_cooldown = 300
+            n = random.randint(1, 3)
             if n == 1:
                 for n in range(-3, 4):
                     fire_ball = FireAttack(self.rect.centerx + n * 250, self.rect.y - 200)
                     fire_attack_group.add(fire_ball)
-            elif x == 2:
+            elif n == 2:
                 ball = BallAttack(self.rect.centerx, self.rect.y, 1)
                 ball_attack_group.add(ball)
                 ball = BallAttack(self.rect.centerx, self.rect.y, -1)
                 ball_attack_group.add(ball)
+            elif n == 3:
+                wall = WallAttack(self.rect.bottom)
+                wall_attack_group.add(wall)
+                wall = WallAttack(self.rect.bottom - wall_attack_img.get_height())
+                wall_attack_group.add(wall)
+                wall = WallAttack(self.rect.bottom - 2 * wall_attack_img.get_height())
+                wall_attack_group.add(wall)
 
     def check_alive(self):
         if self.health <= 0:
@@ -1135,13 +1145,15 @@ class Item(pygame.sprite.Sprite):
         self.rect.y += int(scroll_ver)
         if pygame.sprite.collide_rect(self, player):
             if self.item_type == "Health":
-                player.health += 25
+                player.health += 1
                 if player.health > player.max_health:
                     player.health = player.max_health
             elif self.item_type == "Mana":
-                pass
+                player.mana += 1
+                if player.health > player.max_mana:
+                    player.health = player.max_mana
             elif self.item_type == "Money":
-                pass
+                player.wallet += 1
             elif self.item_type == "Walljump":
                 self.walljump_acquired = True
             elif self.item_type == "Doublejump":
@@ -1152,8 +1164,6 @@ class Item(pygame.sprite.Sprite):
                 self.ruby_acquired = True
             elif self.item_type == "Sapphire":
                 self.sapphire_acquired = True
-            elif self.item_type == "Coin":
-                wallet += 1
             self.kill()
         return [self.walljump_acquired, self.doublejump_acquired, self.emerald_acquired,
                 self.ruby_acquired, self.sapphire_acquired]
@@ -1289,6 +1299,33 @@ class BallAttack(pygame.sprite.Sprite):
             self.kill()
 
 
+class WallAttack(pygame.sprite.Sprite):
+    def __init__(self, ycoords):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = wall_attack_img
+        self.rect = self.image.get_rect()
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        n = random.randint(1, 2)
+        if n == 1:
+            self.rect.center = (0, ycoords)
+            self.direction = 1
+        elif n == 2:
+            self.rect.center = ((cols - 1) * tile_size, ycoords)
+            self.direction = -1
+        self.lifetime = 1000
+        self.vel_y = 0
+        self.speed = 4
+
+    def update(self):
+        self.rect.x += self.speed * self.direction
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
+        self.lifetime -= 1
+        if self.lifetime <= 0:
+            self.kill()
+
+
 # sprite groups
 arrow_group = pygame.sprite.Group()
 spell_group = pygame.sprite.Group()
@@ -1302,6 +1339,7 @@ boss_group = pygame.sprite.Group()
 slime_group = pygame.sprite.Group()
 fire_attack_group = pygame.sprite.Group()
 ball_attack_group = pygame.sprite.Group()
+wall_attack_group = pygame.sprite.Group()
 
 start_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, start_img)
 exit_btn = Button(screen_width // 2 - 130, screen_height // 2 + 50, exit_img)
@@ -1342,6 +1380,10 @@ while run:
             screen.blit(max_health_img, (90 + (x * 20), 40))
         for x in range(player.health):
             screen.blit(health_img, (90 + (x * 20), 40))
+        for x in range(player.max_mana):
+            screen.blit(max_mana_img, (90 + (x * 20), 60))
+        for x in range(player.mana):
+            screen.blit(mana_img, (90 + (x * 20), 60))
 
         for enemy in enemy_group:
             enemy.ai()
@@ -1374,6 +1416,7 @@ while run:
         slime_group.update()
         fire_attack_group.update()
         ball_attack_group.update()
+        wall_attack_group.update()
         arrow_group.draw(screen)
         spell_group.draw(screen)
         item_group.draw(screen)
@@ -1384,8 +1427,11 @@ while run:
         slime_group.draw(screen)
         fire_attack_group.draw(screen)
         ball_attack_group.draw(screen)
+        wall_attack_group.draw(screen)
 
-        scroll_hor, scroll_ver, level_change, previous_level = player.move(moving_left, moving_right)
+        scroll_hor, scroll_ver, level_change, previous_level_number = player.move(moving_left, moving_right)
+        if previous_level_number != 0:
+            previous_level = previous_level_number
         total_hor_scroll -= scroll_hor
         total_ver_scroll -= scroll_ver
         if player.alive:
