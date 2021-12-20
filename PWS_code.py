@@ -987,7 +987,6 @@ class Npc(pygame.sprite.Sprite):
                                       10,
                                       510, 0.3)
                         else:
-                            print("phase 1 complete")
                             self.talking_phase += 1
                         break
                 elif self.talking_phase == 2:
