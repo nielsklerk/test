@@ -1378,8 +1378,8 @@ fire_attack_group = pygame.sprite.Group()
 ball_attack_group = pygame.sprite.Group()
 wall_attack_group = pygame.sprite.Group()
 
-start_btn = Button(screen_width // 2 - 30, screen_height // 1 - 200, start_img)
-exit_btn = Button(screen_width // 2 - 20, screen_height // 1 - 150, exit_img)
+start_btn = Button((screen_width - start_img.get_width()) // 2, screen_height // 1 - 200, start_img)
+exit_btn = Button((screen_width - exit_img.get_width()) // 2, screen_height // 1 - 150, exit_img)
 respawn_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, respawn_img)
 
 world_data = []
