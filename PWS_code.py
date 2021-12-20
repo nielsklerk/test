@@ -1073,7 +1073,7 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("   Well would you look at that, there’s a new face around here. I haven\'t seen you before.", font, (255, 255, 255), 10, 510, 0.3)
                             draw_text("   Would you be interested in some extra, absolutely uncursed, items to help you on your journey?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
-                            self.blit(shop_img, (0, 0))
+                            pass
                         break
         else:
             self.text = 0
@@ -1638,9 +1638,6 @@ class Shop(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
-    def draw(self):
-        screen.blit(self.image,self.rect)
-
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, item_type):
@@ -2018,9 +2015,6 @@ while run:
                     screen.blit(pygame.transform.scale(double_jump_item, (28, 28)), (916, 14))
                 if walljump_acquired:
                     screen.blit(pygame.transform.scale(wall_jump_item, (28, 28)), (916, 47))
-
-            if Shop:
-                screen.blit(shop_img, (0, 0))
 
             if controls:
                 screen.blit(controls_img, (screen_width - controls_img.get_width(), inventory_img.get_height()))
