@@ -54,6 +54,7 @@ ruby_acquired = False
 sapphire_acquired = False
 map_menu = False
 inventory = False
+shop = False
 controls = False
 gathered_item_list = []
 
@@ -80,6 +81,9 @@ shoot_fx.set_volume(0.5)
 # images
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
+
+#shop image
+shop_img = pygame.image.load("img/Menu/inventory.png")
 
 # button images
 start_img = pygame.image.load("img/Button/start.png")
@@ -1266,6 +1270,14 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
+class Shop(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = shop_img
+
+    def update(self):
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, item_type):
