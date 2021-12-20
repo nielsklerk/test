@@ -140,8 +140,9 @@ def draw_bg():
     screen.blit(bg_img_list[current_world], (0, 0))
 
 
-def draw_text(text, fonttype, color, xcoords, ycoords):
+def draw_text(text, fonttype, color, xcoords, ycoords, size):
     txt_img = fonttype.render(text, True, color)
+    txt_img = pygame.transform.scale(txt_img, (txt_img.get_width() * size, txt_img.get_height() * size ))
     screen.blit(txt_img, (xcoords, ycoords))
 
 
@@ -1416,6 +1417,9 @@ while run:
             screen.blit(max_mana_img, (90 + (x * 20), 60))
         for x in range(player.mana):
             screen.blit(mana_img, (90 + (x * 20), 60))
+        screen.blit(money_img, (90, 85))
+        draw_text(f"{player.wallet}", font, (255, 255, 0), 115, 80, 0.5)
+
 
         for enemy in enemy_group:
             enemy.ai()
@@ -1511,6 +1515,9 @@ while run:
                 level_change = 0
                 player_health = player.health
                 player_max_health = player.max_health
+                player_mana = player.mana
+                player_max_mana = player.max_mana
+                wallet = player.wallet
                 world_data = reset_level()
                 with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
                     reader = csv.reader(csvfile, delimiter=',')
@@ -1525,9 +1532,10 @@ while run:
         else:
             scroll_ver = 0
             scroll_hor = 0
-            draw_text("You died", font, (0, 0, 0), 250, 60)
+            draw_text("You died", font, (0, 0, 0), 250, 60, 1)
             if respawn_btn.draw():
                 player_health = player_max_health
+                wallet = player.wallet
                 total_hor_scroll = 0
                 total_ver_scroll = 0
                 world_data = reset_level()
@@ -1544,7 +1552,7 @@ while run:
                 run = False
     else:
         screen.fill((50, 50, 50))
-        draw_text("Re: Birth", font, (0, 0, 0), 250, 60)
+        draw_text("Re: Birth", font, (0, 0, 0), 250, 60, 1)
         if start_btn.draw():
             game_started = True
         if exit_btn.draw():
