@@ -45,11 +45,11 @@ moving_right = False
 shoot = False
 cast = False
 attack = False
-walljump_acquired = True
-doublejump_acquired = True
-emerald_acquired = True
-ruby_acquired = True
-sapphire_acquired = True
+walljump_acquired = False
+doublejump_acquired = False
+emerald_acquired = False
+ruby_acquired = False
+sapphire_acquired = False
 map_menu = False
 inventory = False
 gathered_item_list = []
@@ -142,7 +142,7 @@ def draw_bg():
 
 def draw_text(text, fonttype, color, xcoords, ycoords, size):
     txt_img = fonttype.render(text, True, color)
-    txt_img = pygame.transform.scale(txt_img, (txt_img.get_width() * size, txt_img.get_height() * size ))
+    txt_img = pygame.transform.scale(txt_img, (txt_img.get_width() * size, txt_img.get_height() * size))
     screen.blit(txt_img, (xcoords, ycoords))
 
 
@@ -442,10 +442,10 @@ class Enemy(pygame.sprite.Sprite):
         self.flying = flying
         if enemy_type == 1:
             self.speed = 4
-            self.health = 20
+            self.health = 15
         elif enemy_type == 2:
             self.speed = 2
-            self.health = 40
+            self.health = 30
         self.enemy_type = enemy_type
         self.direction = 1
         self.flip = False
@@ -520,7 +520,7 @@ class Enemy(pygame.sprite.Sprite):
     def ai(self):
         if self.alive and player.alive:
             if pygame.sprite.spritecollide(self, spell_group, True):
-                self.health -= 5
+                self.health -= 10
             if pygame.sprite.spritecollide(self, arrow_group, True):
                 self.health -= 1
             if not self.idling and random.randint(1, 200) == 1:
@@ -656,7 +656,8 @@ class Boss(pygame.sprite.Sprite):
         if 1 <= self.boss <= 3:
             self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.boss}/0.png'), (318, 318))
         elif self.boss == 4:
-            self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.phase}/0.png'), (318, 318))
+            self.image = pygame.transform.scale(pygame.image.load(f'img/Enemy/Boss/World{self.phase}/0.png'),
+                                                (318, 318))
         self.rect = self.image.get_rect()
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
@@ -690,7 +691,7 @@ class Boss(pygame.sprite.Sprite):
     def ai(self):
         if self.alive and player.alive:
             if pygame.sprite.spritecollide(self, spell_group, True):
-                self.health -= 5
+                self.health -= 10
             if pygame.sprite.spritecollide(self, arrow_group, True):
                 self.health -= 1
             if not self.idling and random.randint(1, 200) == 1:
