@@ -847,7 +847,6 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("   I'll be on my way now!", font, (255, 255, 255), 10, 530, 0.3)
                         break
             elif self.character == "portalman":
-                self.text = 0
                 if self.talking_phase == 1:
                     while True:
                         if self.skip_text and self.check_skip_cooldown <= 0:
@@ -1995,6 +1994,7 @@ while run:
             else:
                 draw_text("For Controls Press TAB", font, (255, 255, 255), 880, 126, 0.2)
                 draw_text("When Glitched Press Delete", font, (255, 255, 255), 866, 140, 0.2)
+                draw_text("Press SPACE To Skip Text", font, (255, 255, 255), 870, 154, 0.2)
 
             if level_change == 0:
                 for npc in npc_group:
