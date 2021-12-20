@@ -75,9 +75,13 @@ shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
 shoot_fx.set_volume(0.5)
 """
 # images
+
+#title screen image
+title_img = pygame.image.load("img/Menu/title screen.png")
+
 # button images
-start_img = pygame.image.load("img/New Piskel.png")
-exit_img = pygame.image.load("img/New Piskel.png")
+start_img = pygame.image.load("img/Button/start.png")
+exit_img = pygame.image.load("img/Button/exit.png")
 respawn_img = pygame.image.load("img/New Piskel.png")
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
@@ -1374,8 +1378,8 @@ fire_attack_group = pygame.sprite.Group()
 ball_attack_group = pygame.sprite.Group()
 wall_attack_group = pygame.sprite.Group()
 
-start_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, start_img)
-exit_btn = Button(screen_width // 2 - 130, screen_height // 2 + 50, exit_img)
+start_btn = Button(screen_width // 2 - 30, screen_height // 1 - 200, start_img)
+exit_btn = Button(screen_width // 2 - 20, screen_height // 1 - 150, exit_img)
 respawn_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, respawn_img)
 
 world_data = []
@@ -1550,8 +1554,7 @@ while run:
             elif exit_btn.draw():
                 run = False
     else:
-        screen.fill((50, 50, 50))
-        draw_text("Re: Birth", font, (0, 0, 0), 250, 60, 1)
+        screen.blit(title_img, (0, 0))
         if start_btn.draw():
             game_started = True
         if exit_btn.draw():
