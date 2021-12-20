@@ -111,6 +111,9 @@ slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/slimeb
 desert_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/desertslimeball.png"), (40, 40))
 lava_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/lavaslimeball.png"), (40, 40))
 snow_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/snowslimeball.png"), (40, 40))
+desert_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/desertslimeball.png"), (40, 40))
+lava_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/lavaslimeball.png"), (40, 40))
+snow_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/snowslimeball.png"), (40, 40))
 
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
@@ -575,7 +578,7 @@ class Enemy(pygame.sprite.Sprite):
             if self.slime_cooldown <= 0:
                 self.slime_cooldown = 120
                 slime = Slime(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
-                              self.direction)
+                              self.direction, self.world)
                 slime_group.add(slime)
             if self.rect.centerx > player.rect.centerx:
                 self.move(True, False)
@@ -1261,13 +1264,17 @@ class Spell(pygame.sprite.Sprite):
 
 
 class Slime(pygame.sprite.Sprite):
-    def __init__(self, xcoords, ycoords, direction):
+    def __init__(self, xcoords, ycoords, direction, world):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
-        if direction > 0:
+        if world == 0:
             self.image = slimeball_img
-        else:
-            self.image = pygame.transform.flip(slimeball_img, True, False)
+        elif world == 1:
+            self.image = desert_slimeball_img
+        elif world == 2:
+            self.image = lava_slimeball_img
+        elif world == 3:
+            self.image = snow_slimeball_img
         self.rect = self.image.get_rect()
         self.rect.center = (xcoords, ycoords)
         self.direction = direction
