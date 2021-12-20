@@ -108,6 +108,9 @@ fire_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/fire
 ball_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/ball_attack.png"), (50, 50))
 wall_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/wall_attack.png"), (32, 64))
 slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/slimeball.png"), (40, 40))
+desert_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/desertslimeball.png"), (40, 40))
+lava_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/lavaslimeball.png"), (40, 40))
+snow_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/snowslimeball.png"), (40, 40))
 
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
