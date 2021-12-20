@@ -54,6 +54,7 @@ ruby_acquired = False
 sapphire_acquired = False
 map_menu = False
 inventory = False
+shop = False
 controls = False
 ending = False
 gathered_item_list = []
@@ -86,6 +87,9 @@ ending2_img = pygame.transform.scale(pygame.image.load("img/EndScenes/2.png"), (
 ending3_img = pygame.transform.scale(pygame.image.load("img/EndScenes/3.png"), (screen_width, screen_height))
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
+
+#shop image
+shop_img = pygame.image.load("img/Menu/inventory.png")
 
 # button images
 start_img = pygame.image.load("img/Button/start.png")
@@ -1056,7 +1060,21 @@ class Npc(pygame.sprite.Sprite):
                                       0.5)
                         break
             elif self.character == "shopkeeper":
-                pass
+                if self.talking_phase == 1:
+                    while True:
+                        if self.skip_text and self.check_skip_cooldown <= 0:
+                            self.check_skip_cooldown = 10
+                            self.text += 1
+                            self.skip_text = False
+                        else:
+                            self.check_skip_cooldown -= 1
+                        if self.text == 0:
+                            draw_text("?:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Well would you look at that, there’s a new face around here. I haven\'t seen you before.", font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text("   Would you be interested in some extra, absolutely uncursed, items to help you on your journey?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 1:
+                            self.blit(shop_img, (0, 0))
+                        break
         else:
             self.text = 0
             self.check_skip_cooldown = 10
@@ -1610,6 +1628,19 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
+class Shop(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = shop_img
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
+
+    def draw(self):
+        screen.blit(self.image,self.rect)
+
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, item_type):
@@ -1987,6 +2018,9 @@ while run:
                     screen.blit(pygame.transform.scale(double_jump_item, (28, 28)), (916, 14))
                 if walljump_acquired:
                     screen.blit(pygame.transform.scale(wall_jump_item, (28, 28)), (916, 47))
+
+            if Shop:
+                screen.blit(shop_img, (0, 0))
 
             if controls:
                 screen.blit(controls_img, (screen_width - controls_img.get_width(), inventory_img.get_height()))
