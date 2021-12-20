@@ -633,6 +633,17 @@ class Enemy(pygame.sprite.Sprite):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
+class Shop(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = shop_img
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.x += int(scroll_hor)
+        self.rect.y += int(scroll_ver)
+
+
 class Npc(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, character):
         pygame.sprite.Sprite.__init__(self)
@@ -1073,7 +1084,7 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("   Well would you look at that, there’s a new face around here. I haven\'t seen you before.", font, (255, 255, 255), 10, 510, 0.3)
                             draw_text("   Would you be interested in some extra, absolutely uncursed, items to help you on your journey?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
-                            pass
+                            screen.blit(shop_img, (0, 0))
                         break
         else:
             self.text = 0
@@ -1627,17 +1638,6 @@ class Lava(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
-
-class Shop(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = shop_img
-        self.rect = self.image.get_rect()
-
-    def update(self):
-        self.rect.x += int(scroll_hor)
-        self.rect.y += int(scroll_ver)
-
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, item_type):
