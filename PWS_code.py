@@ -1614,8 +1614,9 @@ while run:
                 draw_text("For Controls Press TAB", font, (255, 255, 255), 880, 126, 0.2)
                 draw_text("When Glitched Press Delete", font, (255, 255, 255), 866, 140, 0.2)
 
-            for npc in npc_group:
-                level_change, talking_phase = npc.interact()
+            if level_change == 0:
+                for npc in npc_group:
+                    level_change, talking_phase = npc.interact()
 
             if level_change != 0:
                 total_hor_scroll = 0
