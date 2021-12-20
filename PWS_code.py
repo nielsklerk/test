@@ -55,6 +55,7 @@ sapphire_acquired = False
 map_menu = False
 inventory = False
 controls = False
+ending = False
 gathered_item_list = []
 
 # scroll variables
@@ -78,6 +79,11 @@ shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
 shoot_fx.set_volume(0.5)
 """
 # images
+# ending images
+ending0_img = pygame.transform.scale(pygame.image.load("img/EndScenes/0.png"), (screen_width, screen_height))
+ending1_img = pygame.transform.scale(pygame.image.load("img/EndScenes/1.png"), (screen_width, screen_height))
+ending2_img = pygame.transform.scale(pygame.image.load("img/EndScenes/2.png"), (screen_width, screen_height))
+ending3_img = pygame.transform.scale(pygame.image.load("img/EndScenes/3.png"), (screen_width, screen_height))
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
 
@@ -1101,6 +1107,7 @@ class Boss(pygame.sprite.Sprite):
         self.width = self.image.get_width()
         self.height = self.image.get_height()
         self.move_counter = 0
+        self.ending = False
 
     def move(self, mov_left, mov_right):
         dx = 0
@@ -1209,7 +1216,8 @@ class Boss(pygame.sprite.Sprite):
                     boss = Boss(self.rect.centerx, self.rect.centery, 1500, 1000, 4, self.phase)
                     boss_group.add(boss)
                 else:
-                    pass
+                    self.ending = True
+        return self.ending
 
     def update(self):
         self.attack_cooldown -= 1
@@ -1808,6 +1816,42 @@ class WallAttack(pygame.sprite.Sprite):
             self.kill()
 
 
+class Ending():
+    def __init__(self):
+        self.cooldown = 0
+
+    def update(self):
+        self.cooldown += 1
+        if self.cooldown <= 120:
+            screen.fill((0, 0, 0))
+            draw_text("Phew.. thank god that’s over with.", font, (255, 255, 255), 0.4 * screen_width, screen_height // 2, 0.5)
+        elif 120 < self.cooldown <= 240:
+            screen.blit(ending0_img, (0, 0))
+        elif 240 < self.cooldown <= 360:
+            screen.fill((0, 0, 0))
+            draw_text("Just a few more steps.", font, (255, 255, 255), 0.4 * screen_width,
+                      screen_height // 2, 0.5)
+        elif 360 < self.cooldown <= 480:
+            screen.blit(ending1_img, (0, 0))
+        elif 480 < self.cooldown <= 600:
+            screen.fill((0, 0, 0))
+            draw_text("I better get to the portal before he respawns or something..", font, (255, 255, 255), 0.4 * screen_width,
+                      screen_height // 2, 0.5)
+        elif 600 < self.cooldown <= 720:
+            screen.blit(ending2_img, (0, 0))
+        elif 720 < self.cooldown <= 840:
+            screen.fill((0, 0, 0))
+            draw_text("It’s time to go back home.", font, (255, 255, 255), 0.4 * screen_width,
+                      screen_height // 2, 0.5)
+        elif 840 < self.cooldown <= 960:
+            screen.blit(ending3_img, (0, 0))
+        elif 960 < self.cooldown <= 1080:
+            screen.fill((0, 0, 0))
+            draw_text("..Huh? Why am I back here?", font, (255, 255, 255), 0.4 * screen_width,
+                      screen_height // 2, 0.5)
+
+
+
 # sprite groups
 arrow_group = pygame.sprite.Group()
 spell_group = pygame.sprite.Group()
@@ -1826,6 +1870,7 @@ wall_attack_group = pygame.sprite.Group()
 start_btn = Button((screen_width - start_img.get_width()) // 2, screen_height // 1 - 200, start_img)
 exit_btn = Button((screen_width - exit_img.get_width()) // 2, screen_height // 1 - 150, exit_img)
 respawn_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, respawn_img)
+ending_screen = Ending()
 
 world_data = []
 for row in range(rows):
@@ -1956,6 +2001,12 @@ while run:
                     level_change, talking_phase = npc.interact()
                     npc.update()
 
+            for boss in boss_group:
+                if boss.check_alive() == True:
+                    ending = True
+            if ending:
+                ending_screen.update()
+
             if level_change != 0:
                 total_hor_scroll = 0
                 total_ver_scroll = 0
@@ -2067,7 +2118,6 @@ while run:
                 controls = False
             if event.key == pygame.K_SPACE:
                 skip_text = False
-    print(talking_phase)
     clock.tick(fps)
     pygame.display.update()
 
