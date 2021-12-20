@@ -1405,16 +1405,6 @@ total_ver_scroll = -world.ver_off
 run = True
 while run:
     if game_started:
-        if 0 <= level <= 6:
-            current_world = 0
-        elif 7 <= level <= 14:
-            current_world = 1
-        elif 15 <= level <= 26:
-            current_world = 2
-        elif 27 <= level <= 37:
-            current_world = 3
-        elif 38 <= level <= 48:
-            current_world = 4
         draw_bg()
         world.draw()
         for x in range(player.max_health):
@@ -1519,6 +1509,16 @@ while run:
                 total_hor_scroll = 0
                 total_ver_scroll = 0
                 level += level_change
+                if 0 <= level <= 6:
+                    current_world = 0
+                elif 7 <= level <= 14:
+                    current_world = 1
+                elif 15 <= level <= 26:
+                    current_world = 2
+                elif 27 <= level <= 37:
+                    current_world = 3
+                elif 38 <= level <= 48:
+                    current_world = 4
                 level_change = 0
                 player_health = player.health
                 player_max_health = player.max_health
