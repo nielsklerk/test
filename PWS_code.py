@@ -36,6 +36,7 @@ player_max_health = 10
 player_mana = 10
 player_max_mana = 10
 wallet = 0
+talking_phase = 1
 
 gravity = 0.75
 
@@ -45,6 +46,7 @@ moving_right = False
 shoot = False
 cast = False
 attack = False
+skip_text = False
 walljump_acquired = False
 doublejump_acquired = False
 emerald_acquired = False
@@ -109,9 +111,6 @@ fire_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/fire
 ball_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/ball_attack.png"), (50, 50))
 wall_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/wall_attack.png"), (32, 64))
 slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/slimeball.png"), (40, 40))
-desert_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/desertslimeball.png"), (40, 40))
-lava_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/lavaslimeball.png"), (40, 40))
-snow_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/snowslimeball.png"), (40, 40))
 desert_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/desertslimeball.png"), (40, 40))
 lava_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/lavaslimeball.png"), (40, 40))
 snow_slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/snowslimeball.png"), (40, 40))
@@ -628,17 +627,106 @@ class Npc(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, character):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(f'img/NPC/{character}.png')
-        self.image = pygame.transform.scale(self.image,
-                                            (self.image.get_width() * 2, self.image.get_height() * 2))
-        self.rect = self.image.get_rect()
-        self.rect.center = (xcoords, ycoords)
+        if character == "portalman":
+            self.image = pygame.transform.scale(self.image,
+                                                (self.image.get_width() * 2, self.image.get_height() * 2))
+            self.rect = self.image.get_rect()
+            self.rect.center = (xcoords, ycoords)
+        else:
+            self.image = pygame.transform.scale(self.image,
+                                                (self.image.get_width() * 2.5, self.image.get_height() * 2.5))
+            self.rect = self.image.get_rect()
+            self.rect.center = (xcoords + 0.375 * tile_size, ycoords + 0.375 * tile_size)
+        self.character = character
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        self.vision = pygame.Rect(0, 0, 200, 300)
         self.update_time = pygame.time.get_ticks()
+        self.text = 0
+        self.skip_text = skip_text
+        self.check_skip_cooldown = 60
+        self.level_changer = 0
+        self.talking_phase = talking_phase
+
+    def interact(self):
+        if player.rect.colliderect(self.rect.x, self.rect.y, self.width, self.height):
+            if self.character == "joseph":
+                if self.talking_phase == 1:
+                    while True:
+                        if self.skip_text and self.check_skip_cooldown <= 0:
+                            self.check_skip_cooldown = 60
+                            self.text += 1
+                            self.skip_text = False
+                        else:
+                            self.check_skip_cooldown -= 1
+                        if self.text == 0:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        elif self.text == 1:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        break
+                elif self.talking_phase == 2:
+                    while True:
+                        if self.skip_text and self.check_skip_cooldown <= 0:
+                            self.check_skip_cooldown = 60
+                            self.text += 1
+                            self.skip_text = False
+                        else:
+                            self.check_skip_cooldown -= 1
+                        if self.text == 0:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        elif self.text == 1:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        break
+            elif self.character == "portalman":
+                if self.talking_phase == 1:
+                    while True:
+                        if self.skip_text and self.check_skip_cooldown <= 0:
+                            self.check_skip_cooldown = 60
+                            self.text += 1
+                            self.skip_text = False
+                        else:
+                            self.check_skip_cooldown -= 1
+                        if self.text == 0:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        elif self.text == 1:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        self.talking_phase += 1
+                        break
+                elif self.talking_phase == 2:
+                    while True:
+                        if self.skip_text and self.check_skip_cooldown <= 0:
+                            self.check_skip_cooldown = 60
+                            self.text += 1
+                            self.skip_text = False
+                        else:
+                            self.check_skip_cooldown -= 1
+                        if self.text == 0:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        elif self.text == 1:
+                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                        elif self.text == 2:
+                            if emerald_acquired and ruby_acquired and sapphire_acquired:
+                                print("Hello")
+                                self.level_changer = 1
+                            else:
+                                draw_text("You haven\'t collected everything", font, (255, 255, 255), 10, 500,
+                                          0.5)
+
+                        break
+            elif self.character == "shopkeeper":
+                pass
+        else:
+            self.text = 0
+            self.check_skip_cooldown = 60
+            self.talking_phase = talking_phase
+
+        return self.level_changer, self.talking_phase
 
     def update(self):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
+        self.vision.center = self.rect.center
+        self.skip_text = skip_text
 
     def draw(self):
         screen.blit(self.image, self.rect)
@@ -1066,6 +1154,12 @@ class World:
                         item_group.add(one_item)
                     elif one_tile == 34:
                         npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, 'joseph')
+                        npc_group.add(npc)
+                    elif one_tile == 35:
+                        npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, 'portalman')
+                        npc_group.add(npc)
+                    elif one_tile == 37:
+                        npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, 'shopkeeper')
                         npc_group.add(npc)
                     elif one_tile == 38:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
@@ -1516,6 +1610,12 @@ while run:
 
             if controls:
                 screen.blit(controls_img, (screen_width - controls_img.get_width(), inventory_img.get_height()))
+            else:
+                draw_text("For Controls Press TAB", font, (255, 255, 255), 880, 126, 0.2)
+                draw_text("When Glitched Press Delete", font, (255, 255, 255), 866, 140, 0.2)
+
+            for npc in npc_group:
+                level_change, talking_phase = npc.interact()
 
             if level_change != 0:
                 total_hor_scroll = 0
@@ -1604,6 +1704,8 @@ while run:
                 inventory = True
             if event.key == pygame.K_TAB:
                 controls = True
+            if event.key == pygame.K_SPACE:
+                skip_text = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -1624,6 +1726,8 @@ while run:
                 inventory = False
             if event.key == pygame.K_TAB:
                 controls = False
+            if event.key == pygame.K_SPACE:
+                skip_text = False
     clock.tick(fps)
     pygame.display.update()
 
