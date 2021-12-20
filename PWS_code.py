@@ -479,7 +479,7 @@ class Enemy(pygame.sprite.Sprite):
             self.world = 2
         elif current_world == 4:
             self.world = 3
-        if self.world != 1:
+        if current_world != 1:
             animation_types = ['Idle']
             for animation in animation_types:
                 temp_list = []
