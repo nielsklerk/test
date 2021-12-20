@@ -52,6 +52,7 @@ ruby_acquired = False
 sapphire_acquired = False
 map_menu = False
 inventory = False
+controls = False
 gathered_item_list = []
 
 # scroll variables
@@ -75,8 +76,7 @@ shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
 shoot_fx.set_volume(0.5)
 """
 # images
-
-#title screen image
+# title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
 
 # button images
@@ -86,6 +86,7 @@ respawn_img = pygame.image.load("img/New Piskel.png")
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
 inventory_img = pygame.image.load("img/Menu/inventory.png")
+controls_img = pygame.image.load("img/Menu/Controls.png")
 
 # background images
 bg_img_list = []
@@ -794,6 +795,7 @@ class Boss(pygame.sprite.Sprite):
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+
 
 class World:
     def __init__(self):
@@ -1512,6 +1514,9 @@ while run:
                 if walljump_acquired:
                     screen.blit(pygame.transform.scale(wall_jump_item, (28, 28)), (916, 47))
 
+            if controls:
+                screen.blit(controls_img, (screen_width - controls_img.get_width(), inventory_img.get_height()))
+
             if level_change != 0:
                 total_hor_scroll = 0
                 total_ver_scroll = 0
@@ -1597,6 +1602,8 @@ while run:
                 attack = True
             if event.key == pygame.K_i:
                 inventory = True
+            if event.key == pygame.K_TAB:
+                controls = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
@@ -1615,6 +1622,8 @@ while run:
                 attack = False
             if event.key == pygame.K_i:
                 inventory = False
+            if event.key == pygame.K_TAB:
+                controls = False
     clock.tick(fps)
     pygame.display.update()
 
