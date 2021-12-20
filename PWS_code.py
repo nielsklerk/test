@@ -54,7 +54,6 @@ ruby_acquired = False
 sapphire_acquired = False
 map_menu = False
 inventory = False
-shop = False
 controls = False
 gathered_item_list = []
 
@@ -81,9 +80,6 @@ shoot_fx.set_volume(0.5)
 # images
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
-
-#shop image
-shop_img = pygame.image.load("img/Menu/inventory.png")
 
 # button images
 start_img = pygame.image.load("img/Button/start.png")
@@ -648,7 +644,7 @@ class Npc(pygame.sprite.Sprite):
         self.update_time = pygame.time.get_ticks()
         self.text = 0
         self.skip_text = skip_text
-        self.check_skip_cooldown = 60
+        self.check_skip_cooldown = 10
         self.level_changer = 0
         self.talking_phase = talking_phase
 
@@ -658,70 +654,408 @@ class Npc(pygame.sprite.Sprite):
                 if self.talking_phase == 1:
                     while True:
                         if self.skip_text and self.check_skip_cooldown <= 0:
-                            self.check_skip_cooldown = 60
+                            self.check_skip_cooldown = 10
                             self.text += 1
                             self.skip_text = False
                         else:
                             self.check_skip_cooldown -= 1
                         if self.text == 0:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                            draw_text("?:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Oh, hello there! You don't seem to be from here.", font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text("   Are you lost traveller?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Uhm.. hello.. I’m not sure either, my head hurts...", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   What is this place? Who are you?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 2:
+                            draw_text("?:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   This is my hometown, isn’t it beautiful? It’s nice to meet you, I’m joseph!", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   Do you perhaps... remember your name?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 3:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   ...ouch..I.. I think it’s.. Adonis?", font, (255, 255, 255), 10, 510, 0.3)
+                        elif self.text == 4:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   What a wonderful name, it sounds unfamiliar to me though.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   It does not sound like it came from any of our regions.. ", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 5:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Do you remember where you’re from? I’d like to help you get back home!",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   It is dangerous out there.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 6:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   I don’t recognize anything here.", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I just encountered monsters that attacked me on the way here.. is this.. Earth?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 7:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Earth? I’m sorry, this is Elysium.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   Did you maybe remember it wrong?", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 8:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   What? No! I am from planet Earth.", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   What is this place?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 9:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Hmm…",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 10:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   This is Elysium, the world that was once known for its lush nature and prosperous cities.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   It used to be bustling with activity, but it’s now all been reduced to empty regions", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 11:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   with extreme weather and monsters swarming around after the calamity hit.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   This is the only town left unscathed.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 12:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Wow, that’s.. a lot to take in. I need a moment..", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I’m really sorry for your loss, but how do I get back?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 13:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   That’s understandable, take your time.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I think I might know someone that does know how to bring you back, but it will take a little bit of traveling.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 14:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   It’s quite dangerous as well, with the monsters roaming around.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I’m not sure if it’d be wise for you to travel in this condition.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 15:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   It’s alright, please.. tell me where I can find them.", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I just want to go home.", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 16:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   He’s located in the underground caves you just came from.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   You’ll have to go back down and go to the right.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 17:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Thank you, err.. sir Joseph.", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 18:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   It’s fine, you can just call me uncle Joseph.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 19:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   I unfortunately cannot go into the underground caves with you, so I hope you stay safe.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   See you again, Adonis.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+
                         break
                 elif self.talking_phase == 2:
                     while True:
                         if self.skip_text and self.check_skip_cooldown <= 0:
-                            self.check_skip_cooldown = 60
+                            self.check_skip_cooldown = 10
                             self.text += 1
                             self.skip_text = False
                         else:
                             self.check_skip_cooldown -= 1
                         if self.text == 0:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   You’re back, Adonis! I’m glad to see you are alive and well.", font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   Did you find him?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Uncle Joseph, you do not realize how glad I am to see you again.", font, (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   Yes, I did find him, he’s.. eccentric. He was kind of rude too.", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 2:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Hahaha, that is unfortunate.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   What did he say, did he find a way to help you get back?", font, (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 3:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   He said something about getting an emerald from the desert,", font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text("   a ruby from the volcano and the sapphire from the snowy plains.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 4:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   He never told me where those places are though..", font, (255, 255, 255), 10, 510, 0.3)
+                        elif self.text == 5:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Haha, that does indeed sound like him! He must be going senile.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I'll tell you instead.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 6:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   If you head to the right from this town, you'll arrive at the pyramid in the desert.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 7:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   If you head left from here after you return from the desert,",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   you'll arrive at the volcano.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 7:
+                            draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   The snowy plains are located south of the volcanic region.",
+                                      font, (255, 255, 255), 10,
+                                      510, 0.3)
+                            draw_text("   I hope this helps you. Have a safe travel, Adonis!", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 1:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Thank you so much uncle Joseph,", font, (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   I'll be on my way now!", font, (255, 255, 255), 10, 530, 0.3)
                         break
             elif self.character == "portalman":
+                self.text = 0
                 if self.talking_phase == 1:
                     while True:
                         if self.skip_text and self.check_skip_cooldown <= 0:
-                            self.check_skip_cooldown = 60
+                            self.check_skip_cooldown = 10
                             self.text += 1
                             self.skip_text = False
                         else:
                             self.check_skip_cooldown -= 1
                         if self.text == 0:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Hello?", font,
+                                      (255, 255, 255), 10,
+                                      510, 0.3)
                         elif self.text == 1:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
-                        self.talking_phase += 1
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Ah! Hello, my boy. I was waiting for you.", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   So, you seek to return to your own world?", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 2:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Huh? What? Uh- yeah- yes, sure?", font,
+                                      (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 3:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Great, let’s get a move on. Time is ticking.", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   I don’t have time to engage in idle chit-chat,", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 4:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("    so let me just see here.. ", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   where were you from again?", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 5:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Earth?", font,
+                                      (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 6:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("    Of course, of course.. What is your name?", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        elif self.text == 7:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Adonis.", font,
+                                      (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 8:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("    You don’t remember your full name?", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        elif self.text == 9:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   No.. ouch.. by the way, do you guys have a hospital somewhere?", font,
+                                      (255, 255, 255), 10,
+                                      510, 0.3)
+                        elif self.text == 10:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Oh no! How unfortunate,", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   anyway..", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 11:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Aha! Here it is, okay..", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   So in order for me to be able to open up the portal,", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 12:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   which you can use to return to Earth,", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   you’ll have to bring me 3 gems:", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 13:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   the emerald from the pyramid,", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        elif self.text == 14:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   the ruby from the volcano and", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        elif self.text == 15:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   the sapphire from the snowy plains.", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        elif self.text == 16:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Now, off you go, if you want to return home as fast as possible.", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("   I haven’t got all day! I’m getting older by the minute,", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 17:
+                            draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   I might be on my last breath by the time", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                            draw_text("    you decide to make your merry way back.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
+                        elif self.text == 18:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   Sheesh, okay, calm down.. I’m already leaving.", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        elif self.text == 19:
+                            draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                            draw_text("   ..Wait, he didn’t tell me where to go. I guess I’ll just go back to uncle Joseph.", font,
+                                      (255, 255, 255),
+                                      10,
+                                      510, 0.3)
+                        else:
+                            print("phase 1 complete")
+                            self.talking_phase += 1
                         break
                 elif self.talking_phase == 2:
                     while True:
                         if self.skip_text and self.check_skip_cooldown <= 0:
-                            self.check_skip_cooldown = 60
+                            self.check_skip_cooldown = 10
                             self.text += 1
                             self.skip_text = False
                         else:
                             self.check_skip_cooldown -= 1
-                        if self.text == 0:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
-                        elif self.text == 1:
-                            draw_text("Fill With Text", font, (255, 255, 255), 10, 500, 0.5)
-                        elif self.text == 2:
-                            if emerald_acquired and ruby_acquired and sapphire_acquired:
-                                print("Hello")
-                                self.level_changer = 1
-                            else:
-                                draw_text("You haven\'t collected everything", font, (255, 255, 255), 10, 500,
-                                          0.5)
-
+                        if emerald_acquired and ruby_acquired and sapphire_acquired:
+                            if self.text == 0:
+                                draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("   Wizard, I’ve come to bargain.", font,
+                                          (255, 255, 255), 10,
+                                          510, 0.3)
+                            elif self.text == 1:
+                                draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("   What? Wizard? I’ll act like I never heard that.", font,
+                                          (255, 255, 255),
+                                          10,
+                                          510, 0.3)
+                                draw_text("   So, I presume you’ve got the gems.", font,
+                                          (255, 255, 255), 10, 530, 0.3)
+                            if self.text == 2:
+                                draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("   Yes, I have the gems,", font,
+                                          (255, 255, 255), 10,
+                                          510, 0.3)
+                                draw_text("   which you forgot to give me the directions for.", font,
+                                          (255, 255, 255), 10, 530, 0.3)
+                            elif self.text == 3:
+                                draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("    ... ", font,
+                                          (255, 255, 255),
+                                          10,
+                                          510, 0.3)
+                                draw_text("   Anyway.", font,
+                                          (255, 255, 255), 10, 530, 0.3)
+                            elif self.text == 4:
+                                draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("    Hand them over so I can start the spell on opening the portal. ", font,
+                                          (255, 255, 255),
+                                          10,
+                                          510, 0.3)
+                                draw_text("   It will open in the next room.", font,
+                                          (255, 255, 255), 10, 530, 0.3)
+                            elif self.text == 5:
+                                draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("   Alright, here are the emerald, ruby and the sapphire.", font,
+                                          (255, 255, 255), 10,
+                                          510, 0.3)
+                            elif self.text == 6:
+                                draw_text("Portalman:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("    Great, you may now pass. I hope you have a safe journey", font,
+                                          (255, 255, 255),
+                                          10,
+                                          510, 0.3)
+                            elif self.text == 7:
+                                draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
+                                draw_text("   Uhm… alright. Thanks, I guess.", font,
+                                          (255, 255, 255), 10,
+                                          510, 0.3)
+                            self.level_changer = 1
+                        else:
+                            draw_text("You haven't collected everything", font, (255, 255, 255), 10, 500,
+                                      0.5)
                         break
             elif self.character == "shopkeeper":
                 pass
         else:
             self.text = 0
-            self.check_skip_cooldown = 60
+            self.check_skip_cooldown = 10
             self.talking_phase = talking_phase
 
         return self.level_changer, self.talking_phase
@@ -1270,14 +1604,6 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
-class Shop(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = shop_img
-
-    def update(self):
-        self.rect.x += int(scroll_hor)
-        self.rect.y += int(scroll_ver)
 
 class Item(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, item_type):
@@ -1560,7 +1886,6 @@ while run:
         decoration_group.update()
         lava_group.update()
         exit_group.update()
-        npc_group.update()
         slime_group.update()
         fire_attack_group.update()
         ball_attack_group.update()
@@ -1629,6 +1954,7 @@ while run:
             if level_change == 0:
                 for npc in npc_group:
                     level_change, talking_phase = npc.interact()
+                    npc.update()
 
             if level_change != 0:
                 total_hor_scroll = 0
@@ -1741,6 +2067,7 @@ while run:
                 controls = False
             if event.key == pygame.K_SPACE:
                 skip_text = False
+    print(talking_phase)
     clock.tick(fps)
     pygame.display.update()
 
