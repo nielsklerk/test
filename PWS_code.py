@@ -107,6 +107,7 @@ spell_img = pygame.transform.scale(pygame.image.load("img/Projectiles/magic.png"
 fire_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/fire_attack.png"), (116, 98))
 ball_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/ball_attack.png"), (50, 50))
 wall_attack_img = pygame.transform.scale(pygame.image.load("img/Projectiles/wall_attack.png"), (32, 64))
+slimeball_img = pygame.transform.scale(pygame.image.load("img/Projectiles/slimeball.png"), (40, 40))
 
 # item images
 health_img = pygame.transform.scale(pygame.image.load("img/Item/heart.png"), (20, 20))
@@ -1261,9 +1262,9 @@ class Slime(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
         if direction > 0:
-            self.image = arrow_img
+            self.image = slimeball_img
         else:
-            self.image = pygame.transform.flip(arrow_img, True, False)
+            self.image = pygame.transform.flip(slimeball_img, True, False)
         self.rect = self.image.get_rect()
         self.rect.center = (xcoords, ycoords)
         self.direction = direction
