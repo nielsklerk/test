@@ -1420,7 +1420,6 @@ while run:
         screen.blit(money_img, (90, 85))
         draw_text(f"{player.wallet}", font, (255, 255, 0), 115, 85, 0.35)
 
-
         for enemy in enemy_group:
             enemy.ai()
             enemy.update()
@@ -1602,7 +1601,6 @@ while run:
                 attack = False
             if event.key == pygame.K_i:
                 inventory = False
-    print(pygame.mouse.get_pos())
     clock.tick(fps)
     pygame.display.update()
 
