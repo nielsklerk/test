@@ -1418,7 +1418,7 @@ while run:
         for x in range(player.mana):
             screen.blit(mana_img, (90 + (x * 20), 60))
         screen.blit(money_img, (90, 85))
-        draw_text(f"{player.wallet}", font, (255, 255, 0), 115, 80, 0.5)
+        draw_text(f"{player.wallet}", font, (255, 255, 0), 115, 85, 0.35)
 
 
         for enemy in enemy_group:
