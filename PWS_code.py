@@ -1531,6 +1531,8 @@ class World:
                     elif one_tile == 35:
                         npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, 'portalman')
                         npc_group.add(npc)
+                    elif one_tile == 36:
+                        self.obstacle_list.append(tile_data)
                     elif one_tile == 37:
                         npc = Npc(xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off, 'shopkeeper')
                         npc_group.add(npc)
