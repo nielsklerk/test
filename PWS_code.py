@@ -19,6 +19,7 @@ screen_height = 576
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Re:Birth")
 
+# game variables
 tile_size = 64
 tile_types = len(os.listdir(f'img/Tile/'))
 cols = 48
@@ -37,10 +38,10 @@ player_mana = 10
 player_max_mana = 10
 wallet = 0
 talking_phase = 1
-
+gathered_item_list = []
 gravity = 0.75
 
-# action variables
+# action and menu variables
 moving_left = False
 moving_right = False
 shoot = False
@@ -57,7 +58,6 @@ inventory = False
 shop = False
 controls = False
 ending = False
-gathered_item_list = []
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
@@ -85,10 +85,11 @@ ending0_img = pygame.transform.scale(pygame.image.load("img/EndScenes/0.png"), (
 ending1_img = pygame.transform.scale(pygame.image.load("img/EndScenes/1.png"), (screen_width, screen_height))
 ending2_img = pygame.transform.scale(pygame.image.load("img/EndScenes/2.png"), (screen_width, screen_height))
 ending3_img = pygame.transform.scale(pygame.image.load("img/EndScenes/3.png"), (screen_width, screen_height))
+
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
 
-#shop image
+# shop image
 shop_img = pygame.image.load("img/Menu/inventory.png")
 
 # button images
@@ -179,6 +180,8 @@ def reset_level():
     boss_group.empty()
     slime_group.empty()
     fire_attack_group.empty()
+    ball_attack_group.empty()
+    wall_attack_group.empty()
     data = []
     for _ in range(rows):
         p = [-1] * cols
@@ -1851,7 +1854,7 @@ class WallAttack(pygame.sprite.Sprite):
             self.kill()
 
 
-class Ending():
+class Ending:
     def __init__(self):
         self.cooldown = 0
 
