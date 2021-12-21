@@ -1107,7 +1107,14 @@ class Boss(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, vision_height, vision_width, which_boss, phase):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.health = 5
+        if which_boss == 1:
+            self.health = 50
+        elif which_boss == 2:
+            self.health = 100
+        elif which_boss == 3:
+            self.health = 150
+        elif which_boss == 4:
+            self.health = 100
         self.speed = 4
         self.direction = 1
         self.flip = False
