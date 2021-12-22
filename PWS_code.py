@@ -95,7 +95,7 @@ shop_img = pygame.image.load("img/Menu/inventory.png")
 # button images
 start_img = pygame.image.load("img/Button/start.png")
 exit_img = pygame.image.load("img/Button/exit.png")
-respawn_img = pygame.image.load("img/New Piskel.png")
+respawn_img = pygame.image.load("img/Button/respawn.png")
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
 inventory_img = pygame.image.load("img/Menu/inventory.png")
