@@ -1602,9 +1602,7 @@ class World:
                     elif one_tile == 50:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 51:
-                        one_enemy = Enemy(False, xcoords * tile_size + self.hor_off,
-                                          ycoords * tile_size + self.ver_off, 2, 300, 600)
-                        enemy_group.add(one_enemy)
+                        'self.obstacle_list.append(tile_data)'
                     elif -2 <= one_tile <= -2:
                         decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
                         decoration_group.add(decoration)
