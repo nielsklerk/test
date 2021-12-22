@@ -96,10 +96,13 @@ shop_img = pygame.image.load("img/Menu/inventory.png")
 start_img = pygame.image.load("img/Button/start.png")
 exit_img = pygame.image.load("img/Button/exit.png")
 respawn_img = pygame.image.load("img/Button/respawn.png")
+
+# menu images
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
 inventory_img = pygame.image.load("img/Menu/inventory.png")
 controls_img = pygame.image.load("img/Menu/Controls.png")
+game_over_img= pygame.image.load("img/Menu/death screen.png")
 
 # background images
 bg_img_list = []
@@ -1503,14 +1506,14 @@ class World:
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 25:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
-                                         ycoords * tile_size + self.ver_off, "Left", 4)
+                                         ycoords * tile_size + self.ver_off, "Left", -4)
                         exit_group.add(exit_sign)
                         if previous_level == "Right":
                             player_character = Player((xcoords + 0.5 * player.direction) * tile_size + self.hor_off,
                                                       ycoords * tile_size + self.ver_off)
                     elif one_tile == 26:
                         exit_sign = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
-                                         ycoords * tile_size + self.ver_off, "Right", -4)
+                                         ycoords * tile_size + self.ver_off, "Right", 4)
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
@@ -1907,7 +1910,7 @@ wall_attack_group = pygame.sprite.Group()
 
 start_btn = Button((screen_width - start_img.get_width()) // 2, screen_height // 1 - 200, start_img)
 exit_btn = Button((screen_width - exit_img.get_width()) // 2, screen_height // 1 - 150, exit_img)
-respawn_btn = Button(screen_width // 2 - 130, screen_height // 2 - 150, respawn_img)
+respawn_btn = Button((screen_width - respawn_img.get_width()) // 2, screen_height // 1 - 200, respawn_img)
 ending_screen = Ending()
 
 world_data = []
@@ -2081,6 +2084,7 @@ while run:
             scroll_ver = 0
             scroll_hor = 0
             draw_text("You died", font, (0, 0, 0), 250, 60, 1)
+            screen.blit(game_over_img, (0, 0))
             if respawn_btn.draw():
                 player_health = player_max_health
                 wallet = player.wallet
