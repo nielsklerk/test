@@ -3,7 +3,7 @@ import os
 from cx_Freeze import setup, Executable
 
 #add files
-files = ['img/', 'audio/']
+files = ['img', 'audio']
 
 #target
 
