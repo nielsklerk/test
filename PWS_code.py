@@ -28,7 +28,7 @@ game_over = False
 previous_level = "Left"
 level = 0
 current_world = 0
-world_types = 3
+world_types = 5
 game_started = False
 hor_offset = 0
 ver_offset = 0
@@ -48,11 +48,11 @@ shoot = False
 cast = False
 attack = False
 skip_text = False
-walljump_acquired = False
-doublejump_acquired = False
-emerald_acquired = False
-ruby_acquired = False
-sapphire_acquired = False
+walljump_acquired = True
+doublejump_acquired = True
+emerald_acquired = True
+ruby_acquired = True
+sapphire_acquired = True
 map_menu = False
 inventory = False
 shop = False
@@ -88,9 +88,6 @@ ending3_img = pygame.transform.scale(pygame.image.load("img/EndScenes/3.png"), (
 
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
-
-# shop image
-shop_img = pygame.image.load("img/Menu/inventory.png")
 
 # button images
 start_img = pygame.image.load("img/Button/start.png")
@@ -316,7 +313,7 @@ class Player(pygame.sprite.Sprite):
                         if not doublejump_acquired:
                             self.amount_jumps = 0
 
-        if self.touching_wall:
+        if self.touching_wall and self.vel_y > 0:
             self.slide_factor = 0.5
         else:
             self.slide_factor = 1
@@ -377,12 +374,14 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
 
+        # exit
         if pygame.sprite.spritecollide(self, exit_group, False):
             for exit_sign in exit_group:
                 if exit_sign.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                     level_change_factor = exit_sign.level_change
                     previous_level_number = exit_sign.direction
 
+        # collision checks
         if self.invincibility > 0:
             self.invincibility -= 1
         if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
@@ -399,6 +398,9 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, ball_attack_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+        if pygame.sprite.spritecollide(self, wall_attack_group, False) and self.invincibility <= 0:
+            self.health -= 1
+            self.invincibility = 60
 
         return d_scroll_hor, d_scroll_ver, level_change_factor, previous_level_number
 
@@ -410,7 +412,7 @@ class Player(pygame.sprite.Sprite):
 
     def melee(self):
         if self.melee_cooldown == 0:
-            self.melee_cooldown = 10
+            self.melee_cooldown = 20
             for enemy in enemy_group:
                 if math.sqrt(((enemy.rect.centerx - self.rect.centerx) ** 2) +
                              (enemy.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
@@ -423,6 +425,8 @@ class Player(pygame.sprite.Sprite):
                         boss.health -= 10
 
     def check_alive(self):
+        if player.rect.y > screen_height * 3:
+            self.health = 0
         if self.health <= 0:
             self.health = 0
             self.speed = 0
@@ -637,17 +641,6 @@ class Enemy(pygame.sprite.Sprite):
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
-
-
-class Shop(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = shop_img
-        self.rect = self.image.get_rect()
-
-    def update(self):
-        self.rect.x += int(scroll_hor)
-        self.rect.y += int(scroll_ver)
 
 
 class Npc(pygame.sprite.Sprite):
@@ -1253,6 +1246,7 @@ class Boss(pygame.sprite.Sprite):
                 self.alive = False
                 if self.phase < 3:
                     self.phase += 1
+                    boss_group.empty()
                     boss = Boss(self.rect.centerx, self.rect.centery, 1500, 1000, 4, self.phase)
                     boss_group.add(boss)
                 else:
@@ -1951,6 +1945,8 @@ while run:
             boss.ai()
             boss.update()
             boss.draw()
+            for x in range(boss.health):
+                screen.blit(pygame.image.load("img/menu/HP bar.png"), (300 +(4 * x), 100))
 
         # update + draw groups
         arrow_group.update()
