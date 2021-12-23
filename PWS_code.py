@@ -74,15 +74,17 @@ pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 4000)
 # load music and sounds
 music_index = -1
-"""
-
 jump_fx = pygame.mixer.Sound("audio/jump.wav")
 jump_fx.set_volume(0.5)
 cast_fx = pygame.mixer.Sound("audio/cast.wav")
 cast_fx.set_volume(0.5)
 shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
 shoot_fx.set_volume(0.5)
-"""
+hurt_fx = pygame.mixer.Sound("audio/hurt.wav")
+shoot_fx.set_volume(0.5)
+sword_fx = pygame.mixer.Sound("audio/sword.wav")
+shoot_fx.set_volume(0.5)
+
 # images
 # ending images
 ending0_img = pygame.transform.scale(pygame.image.load("img/EndScenes/0.png"), (screen_width, screen_height))
@@ -226,9 +228,6 @@ def play_music(level_number):
     return music
 
 
-
-
-
 class Button:
     def __init__(self, xcoords, ycoords, image):
         self.image = image
@@ -342,6 +341,7 @@ class Player(pygame.sprite.Sprite):
                     self.vel_y = -20
                     self.jump = False
                     self.in_air = True
+                    jump_fx.play()
                     if doublejump_acquired:
                         self.amount_jumps -= 1
                     else:
@@ -351,6 +351,7 @@ class Player(pygame.sprite.Sprite):
                         self.vel_y = -20
                         self.jump = False
                         self.wall_jump = False
+                        jump_fx.play()
                         if not doublejump_acquired:
                             self.amount_jumps = 0
 
@@ -429,20 +430,26 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+            hurt_fx.play()
         if pygame.sprite.spritecollide(self, slime_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+            hurt_fx.play()
         if pygame.sprite.spritecollide(self, lava_group, False):
             self.health = 0
+            hurt_fx.play()
         if pygame.sprite.spritecollide(self, fire_attack_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+            hurt_fx.play()
         if pygame.sprite.spritecollide(self, ball_attack_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+            hurt_fx.play()
         if pygame.sprite.spritecollide(self, wall_attack_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
+            hurt_fx.play()
 
         return d_scroll_hor, d_scroll_ver, level_change_factor, previous_level_number
 
@@ -454,6 +461,7 @@ class Player(pygame.sprite.Sprite):
 
     def melee(self):
         if self.melee_cooldown == 0:
+            sword_fx.play()
             self.attacking = True
             self.invincibility = 0
             self.melee_cooldown = 20
@@ -494,7 +502,7 @@ class Player(pygame.sprite.Sprite):
             arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
             arrow_group.add(arrow)
-            # shoot_fx.play()
+            shoot_fx.play()
 
     def cast(self):
         if self.cast_cooldown == 0 and self.mana > 0:
@@ -503,7 +511,7 @@ class Player(pygame.sprite.Sprite):
                           self.direction)
             spell_group.add(spell)
             self.mana -= 1
-            # cast_fx.play()
+            cast_fx.play()
 
     def draw(self):
         if self.attacking and self.direction == -1:
