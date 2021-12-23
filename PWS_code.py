@@ -48,16 +48,17 @@ shoot = False
 cast = False
 attack = False
 skip_text = False
-walljump_acquired = False
-doublejump_acquired = False
-emerald_acquired = False
-ruby_acquired = False
+walljump_acquired = True
+doublejump_acquired = True
+emerald_acquired = True
+ruby_acquired = True
 sapphire_acquired = False
 map_menu = False
 inventory = False
 shop = False
 controls = False
 ending = False
+music_started = False
 
 # scroll variables
 scroll_threshold_hor = 4 * tile_size
@@ -67,11 +68,14 @@ scroll_ver = 0
 scroll_speed = 1
 total_hor_scroll = 0
 total_ver_scroll = 0
-"""
-# load music and sounds
-pygame.mixer.music.load("audio/sound.mp3")
+
+pygame.mixer.music.load("audio/Title screen OST.mp3")
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1, 0.0, 4000)
+# load music and sounds
+music_index = -1
+"""
+
 jump_fx = pygame.mixer.Sound("audio/jump.wav")
 jump_fx.set_volume(0.5)
 cast_fx = pygame.mixer.Sound("audio/cast.wav")
@@ -189,6 +193,34 @@ def reset_level():
         p = [-1] * cols
         data.append(p)
     return data
+
+
+def play_music(level_number):
+    music = music_index
+    if ((0 <= level_number <= 5) or (8 <= level_number <= 20) or (22 <= level_number <= 30) or (32 <= level_number <= 36) or (38 <= level_number <= 49)) and music != 0:
+        pygame.mixer.music.load("audio/General bg OST.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1, 0.0, 4000)
+        music = 0
+    elif (level_number == 6 or level_number == 26 or level_number == 37 or level_number == 48) and music != 1:
+        pygame.mixer.music.load("audio/Eerie OST.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1, 0.0, 4000)
+        music = 1
+    elif level_number == 7 and music != 2:
+        pygame.mixer.music.load("audio/Town OST.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1, 0.0, 4000)
+        music = 2
+    elif level_number == 21 or level_number == 31 and music != 3:
+        pygame.mixer.music.load("audio/Gem Acquirement OST.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1, 0.0, 4000)
+
+    return music
+
+
+
 
 
 class Button:
@@ -1181,7 +1213,6 @@ class Boss(pygame.sprite.Sprite):
             if pygame.sprite.spritecollide(self, arrow_group, True):
                 self.health -= 1
             if not self.idling and random.randint(1, 200) == 1:
-                self.update_action(0)  # 0: idle
                 self.idling = True
                 self.idling_counter = 50
             if self.vision.colliderect(player.rect):
@@ -1604,10 +1635,7 @@ class World:
                     elif one_tile == 50:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 51:
-                        'self.obstacle_list.append(tile_data)'
-                    elif -2 <= one_tile <= -2:
-                        decoration = Decoration(image, xcoords * tile_size + self.hor_off, ycoords * tile_size)
-                        decoration_group.add(decoration)
+                        self.obstacle_list.append(tile_data)
         return player_character
 
     def draw(self):
@@ -1936,6 +1964,9 @@ total_ver_scroll = -world.ver_off
 run = True
 while run:
     if game_started:
+        if level == 0 and not music_started:
+            play_music(0)
+            music_started = True
         draw_bg()
         world.draw()
         for x in range(player.max_health):
@@ -2094,6 +2125,7 @@ while run:
                 player = world.process_data(world_data)
                 total_hor_scroll = -world.hor_off
                 total_ver_scroll = -world.ver_off
+                music_index = play_music(level)
 
         else:
             scroll_ver = 0
@@ -2176,6 +2208,7 @@ while run:
                 controls = False
             if event.key == pygame.K_SPACE:
                 skip_text = False
+
     clock.tick(fps)
     pygame.display.update()
 
