@@ -99,7 +99,7 @@ map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
 inventory_img = pygame.image.load("img/Menu/inventory.png")
 controls_img = pygame.image.load("img/Menu/Controls.png")
-game_over_img= pygame.image.load("img/Menu/death screen.png")
+game_over_img = pygame.image.load("img/Menu/death screen.png")
 
 # background images
 bg_img_list = []
@@ -242,7 +242,7 @@ class Player(pygame.sprite.Sprite):
         self.action = 0
         self.update_time = pygame.time.get_ticks()
         self.wall_jump_cooldown = 60
-        self.invincibility = 60
+        self.invincibility = 0
 
         # load in images for player
         animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall', 'Melee', 'Damage']
@@ -262,6 +262,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = (xcoords, ycoords)
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        self.attacking = False
 
     def update(self):
         self.update_animation()
@@ -384,6 +385,7 @@ class Player(pygame.sprite.Sprite):
         # collision checks
         if self.invincibility > 0:
             self.invincibility -= 1
+            self.update_action(8)
         if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
             self.health -= 1
             self.invincibility = 60
@@ -412,6 +414,8 @@ class Player(pygame.sprite.Sprite):
 
     def melee(self):
         if self.melee_cooldown == 0:
+            self.attacking = True
+            self.invincibility = 0
             self.melee_cooldown = 20
             for enemy in enemy_group:
                 if math.sqrt(((enemy.rect.centerx - self.rect.centerx) ** 2) +
@@ -423,6 +427,8 @@ class Player(pygame.sprite.Sprite):
                              (boss.rect.centery - self.rect.centery) ** 2) < (2 * tile_size):
                     if boss.rect.centerx > self.rect.centerx * self.direction:
                         boss.health -= 10
+        else:
+            self.attacking = False
 
     def check_alive(self):
         if player.rect.y > screen_height * 3:
@@ -463,7 +469,10 @@ class Player(pygame.sprite.Sprite):
             # cast_fx.play()
 
     def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+        if self.attacking and self.direction == -1:
+            screen.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x - pygame.image.load("img/Player/Melee/0.png").get_width() - 29, self.rect.y))
+        else:
+            screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -1869,7 +1878,7 @@ class Ending:
             screen.blit(ending1_img, (0, 0))
         elif 480 < self.cooldown <= 600:
             screen.fill((0, 0, 0))
-            draw_text("I better get to the portal before he respawns or something..", font, (255, 255, 255), 0.4 * screen_width,
+            draw_text("I better get to the portal before he respawns or something..", font, (255, 255, 255), 0.1 * screen_width,
                       screen_height // 2, 0.5)
         elif 600 < self.cooldown <= 720:
             screen.blit(ending2_img, (0, 0))
@@ -2005,6 +2014,8 @@ while run:
                 player.update_action(6)
             elif moving_left or moving_right:
                 player.update_action(1)
+            if player.attacking:
+                player.update_action(7)
             else:
                 player.update_action(0)
 
