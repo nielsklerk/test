@@ -48,11 +48,11 @@ shoot = False
 cast = False
 attack = False
 skip_text = False
-walljump_acquired = True
-doublejump_acquired = True
-emerald_acquired = True
-ruby_acquired = True
-sapphire_acquired = True
+walljump_acquired = False
+doublejump_acquired = False
+emerald_acquired = False
+ruby_acquired = False
+sapphire_acquired = False
 map_menu = False
 inventory = False
 shop = False
@@ -245,7 +245,7 @@ class Player(pygame.sprite.Sprite):
         self.invincibility = 60
 
         # load in images for player
-        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall', 'Melee']
+        animation_types = ['Idle', 'Run', 'Jump', 'Shooting', 'Casting', 'Death', 'Touching_wall', 'Melee', 'Damage']
         for animation in animation_types:
             temp_list = []
             # count number of files in the folder
@@ -1646,6 +1646,7 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x += int(scroll_hor)
         self.rect.y += int(scroll_ver)
 
+
 class Item(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, item_type):
         pygame.sprite.Sprite.__init__(self)
@@ -1884,7 +1885,6 @@ class Ending:
                       screen_height // 2, 0.5)
 
 
-
 # sprite groups
 arrow_group = pygame.sprite.Group()
 spell_group = pygame.sprite.Group()
@@ -2000,7 +2000,7 @@ while run:
                 player.melee()
                 player.update_action(7)
             if player.in_air:
-                player.update_action(2)
+                player.update_action(3)
             if player.touching_wall and player.in_air:
                 player.update_action(6)
             elif moving_left or moving_right:
@@ -2038,7 +2038,7 @@ while run:
                     npc.update()
 
             for boss in boss_group:
-                if boss.check_alive() == True:
+                if boss.check_alive():
                     ending = True
             if ending:
                 ending_screen.update()
