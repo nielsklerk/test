@@ -85,6 +85,8 @@ ending0_img = pygame.transform.scale(pygame.image.load("img/EndScenes/0.png"), (
 ending1_img = pygame.transform.scale(pygame.image.load("img/EndScenes/1.png"), (screen_width, screen_height))
 ending2_img = pygame.transform.scale(pygame.image.load("img/EndScenes/2.png"), (screen_width, screen_height))
 ending3_img = pygame.transform.scale(pygame.image.load("img/EndScenes/3.png"), (screen_width, screen_height))
+ending4_img = pygame.transform.scale(pygame.image.load("img/EndScenes/4.png"), (screen_width, screen_height))
+ending5_img = pygame.transform.scale(pygame.image.load("img/EndScenes/5.png"), (screen_width, screen_height))
 
 # title screen image
 title_img = pygame.image.load("img/Menu/title screen.png")
@@ -446,14 +448,11 @@ class Player(pygame.sprite.Sprite):
             self.update_time = pygame.time.get_ticks()
             self.index += 1
         if self.index >= len(self.animation_list[self.action]):
-            if self.action == 3:
-                self.index = len(self.animation_list[self.action]) - 1
-            else:
-                self.index = 0
+            self.index = 0
 
     def shoot(self):
         if self.shoot_cooldown == 0:
-            self.shoot_cooldown = 20
+            self.shoot_cooldown = 30
             arrow = Arrow(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery,
                           self.direction)
             arrow_group.add(arrow)
@@ -1701,7 +1700,7 @@ class Item(pygame.sprite.Sprite):
 class Arrow(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, direction):
         pygame.sprite.Sprite.__init__(self)
-        self.speed = 10
+        self.speed = 14
         if direction > 0:
             self.image = arrow_img
         else:
@@ -1724,7 +1723,7 @@ class Arrow(pygame.sprite.Sprite):
 class Spell(pygame.sprite.Sprite):
     def __init__(self, xcoords, ycoords, direction):
         pygame.sprite.Sprite.__init__(self)
-        self.speed = 6
+        self.speed = 10
         if direction > 0:
             self.image = spell_img
         else:
@@ -1892,6 +1891,10 @@ class Ending:
             screen.fill((0, 0, 0))
             draw_text("..Huh? Why am I back here?", font, (255, 255, 255), 0.4 * screen_width,
                       screen_height // 2, 0.5)
+        elif 1080 < self.cooldown <= 1200:
+            screen.blit(ending4_img, (0, 0))
+        elif 1200 < self.cooldown <= 2000:
+            screen.blit(ending5_img, (0, 0))
 
 
 # sprite groups
@@ -1999,25 +2002,32 @@ while run:
         if player.alive:
             player.update()
             player.draw()
-            if cast:
-                player.cast()
-                player.update_action(4)
-            if shoot:
-                player.shoot()
-                player.update_action(3)
-            if attack:
-                player.melee()
-                player.update_action(7)
-            if player.in_air:
-                player.update_action(3)
-            if player.touching_wall and player.in_air:
-                player.update_action(6)
-            elif moving_left or moving_right:
-                player.update_action(1)
-            if player.attacking:
-                player.update_action(7)
-            else:
-                player.update_action(0)
+            while True:
+                if cast:
+                    player.cast()
+                    player.update_action(4)
+                    break
+                if shoot:
+                    player.shoot()
+                    player.update_action(3)
+                    break
+                if attack:
+                    player.melee()
+                if player.attacking:
+                    player.update_action(7)
+                    break
+                if player.touching_wall and player.in_air:
+                    player.update_action(6)
+                    break
+                if player.in_air:
+                    player.update_action(2)
+                    break
+                if moving_left or moving_right:
+                    player.update_action(1)
+                    break
+                else:
+                    player.update_action(0)
+                    break
 
             if map_menu:
                 screen.blit(map_background_img, (0, 0))
