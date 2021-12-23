@@ -216,6 +216,12 @@ def play_music(level_number):
         pygame.mixer.music.load("audio/Gem Acquirement OST.mp3")
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1, 0.0, 4000)
+        music = 3
+    elif level_number == 50 and music != 4:
+        pygame.mixer.music.load("audio/Less eerie OST.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1, 0.0, 4000)
+        music = 4
 
     return music
 
@@ -2093,6 +2099,7 @@ while run:
                 if boss.check_alive():
                     ending = True
             if ending:
+                music_index = play_music(50)
                 ending_screen.update()
 
             if level_change != 0:
