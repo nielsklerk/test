@@ -433,29 +433,30 @@ class Player(pygame.sprite.Sprite):
         if self.invincibility > 0:
             self.invincibility -= 1
             self.update_action(8)
-        if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
-            self.health -= 1
-            self.invincibility = 60
-            hurt_fx.play()
-        if pygame.sprite.spritecollide(self, slime_group, False) and self.invincibility <= 0:
-            self.health -= 1
-            self.invincibility = 60
-            hurt_fx.play()
-        if pygame.sprite.spritecollide(self, lava_group, False):
-            self.health = 0
-            hurt_fx.play()
-        if pygame.sprite.spritecollide(self, fire_attack_group, False) and self.invincibility <= 0:
-            self.health -= 1
-            self.invincibility = 60
-            hurt_fx.play()
-        if pygame.sprite.spritecollide(self, ball_attack_group, False) and self.invincibility <= 0:
-            self.health -= 1
-            self.invincibility = 60
-            hurt_fx.play()
-        if pygame.sprite.spritecollide(self, wall_attack_group, False) and self.invincibility <= 0:
-            self.health -= 1
-            self.invincibility = 60
-            hurt_fx.play()
+        if self.alive:
+            if pygame.sprite.spritecollide(self, enemy_group, False) and self.invincibility <= 0:
+                self.health -= 1
+                self.invincibility = 60
+                hurt_fx.play()
+            if pygame.sprite.spritecollide(self, slime_group, False) and self.invincibility <= 0:
+                self.health -= 1
+                self.invincibility = 60
+                hurt_fx.play()
+            if pygame.sprite.spritecollide(self, lava_group, False):
+                self.health = 0
+                hurt_fx.play()
+            if pygame.sprite.spritecollide(self, fire_attack_group, False) and self.invincibility <= 0:
+                self.health -= 1
+                self.invincibility = 60
+                hurt_fx.play()
+            if pygame.sprite.spritecollide(self, ball_attack_group, False) and self.invincibility <= 0:
+                self.health -= 1
+                self.invincibility = 60
+                hurt_fx.play()
+            if pygame.sprite.spritecollide(self, wall_attack_group, False) and self.invincibility <= 0:
+                self.health -= 1
+                self.invincibility = 60
+                hurt_fx.play()
 
         return d_scroll_hor, d_scroll_ver, level_change_factor, previous_level_number
 
