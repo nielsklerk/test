@@ -54,6 +54,8 @@ emerald_acquired = True
 ruby_acquired = False
 sapphire_acquired = False
 map_menu = False
+pause_menu = False
+settings = False
 inventory = False
 shop = False
 controls = False
@@ -69,21 +71,22 @@ scroll_speed = 1
 total_hor_scroll = 0
 total_ver_scroll = 0
 
+volume = 0.5
 pygame.mixer.music.load("audio/Title screen OST.mp3")
-pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.set_volume(volume)
 pygame.mixer.music.play(-1, 0.0, 4000)
 # load music and sounds
 music_index = -1
 jump_fx = pygame.mixer.Sound("audio/jump.wav")
-jump_fx.set_volume(0.5)
+jump_fx.set_volume(volume)
 cast_fx = pygame.mixer.Sound("audio/cast.wav")
-cast_fx.set_volume(0.5)
+cast_fx.set_volume(volume)
 shoot_fx = pygame.mixer.Sound("audio/shoot.wav")
-shoot_fx.set_volume(0.5)
+shoot_fx.set_volume(volume)
 hurt_fx = pygame.mixer.Sound("audio/hurt.wav")
-shoot_fx.set_volume(0.5)
+shoot_fx.set_volume(volume)
 sword_fx = pygame.mixer.Sound("audio/sword.wav")
-shoot_fx.set_volume(0.5)
+shoot_fx.set_volume(volume)
 
 # images
 # ending images
@@ -101,6 +104,9 @@ title_img = pygame.image.load("img/Menu/title screen.png")
 start_img = pygame.image.load("img/Button/start.png")
 exit_img = pygame.image.load("img/Button/exit.png")
 respawn_img = pygame.image.load("img/Button/respawn.png")
+settings_img = pygame.image.load("img/New Piskel.png")
+volume_up_img = pygame.image.load("img/New Piskel.png")
+volume_down_img = pygame.image.load("img/New Piskel.png")
 
 # menu images
 map_img = pygame.image.load("img/level layout map.png")
@@ -201,27 +207,27 @@ def play_music(level_number):
     music = music_index
     if ((0 <= level_number <= 5) or (8 <= level_number <= 20) or (22 <= level_number <= 30) or (32 <= level_number <= 36) or (38 <= level_number <= 49)) and music != 0:
         pygame.mixer.music.load("audio/General bg OST.mp3")
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1, 0.0, 4000)
         music = 0
     elif (level_number == 6 or level_number == 26 or level_number == 37 or level_number == 48) and music != 1:
         pygame.mixer.music.load("audio/Eerie OST.mp3")
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1, 0.0, 4000)
         music = 1
     elif level_number == 7 and music != 2:
         pygame.mixer.music.load("audio/Town OST.mp3")
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1, 0.0, 4000)
         music = 2
     elif level_number == 21 or level_number == 31 and music != 3:
         pygame.mixer.music.load("audio/Gem Acquirement OST.mp3")
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1, 0.0, 4000)
         music = 3
     elif level_number == 50 and music != 4:
         pygame.mixer.music.load("audio/Less eerie OST.mp3")
-        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1, 0.0, 4000)
         music = 4
 
@@ -526,7 +532,7 @@ class Enemy(pygame.sprite.Sprite):
         self.alive = True
         self.flying = flying
         if enemy_type == 1:
-            self.speed = 4
+            self.speed = 3
             self.health = 15
         elif enemy_type == 2:
             self.speed = 2
@@ -1957,6 +1963,9 @@ wall_attack_group = pygame.sprite.Group()
 start_btn = Button((screen_width - start_img.get_width()) // 2, screen_height // 1 - 200, start_img)
 exit_btn = Button((screen_width - exit_img.get_width()) // 2, screen_height // 1 - 150, exit_img)
 respawn_btn = Button((screen_width - respawn_img.get_width()) // 2, screen_height // 1 - 200, respawn_img)
+settings_btn = Button((screen_width - settings_img.get_width()) // 2, screen_height // 1 - 200, settings_img)
+volume_up_btn = Button((screen_width - volume_up_img.get_width()) // 2 + 100, screen_height // 1 - 200, volume_up_img)
+volume_down_btn = Button((screen_width - volume_down_img.get_width()) // 2 - 100, screen_height // 1 - 200, volume_down_img)
 ending_screen = Ending()
 
 world_data = []
@@ -2003,7 +2012,7 @@ while run:
             boss.update()
             boss.draw()
             for x in range(boss.health):
-                screen.blit(pygame.image.load("img/menu/HP bar.png"), (300 +(4 * x), 100))
+                screen.blit(pygame.image.load("img/menu/HP bar.png"), (300 + (4 * x), 100))
 
         # update + draw groups
         arrow_group.update()
@@ -2110,6 +2119,21 @@ while run:
                 music_index = play_music(50)
                 ending_screen.update()
 
+            if pause_menu:
+                screen.fill((0, 0, 0))
+                if not settings:
+                    if exit_btn.draw():
+                        run = False
+                    elif settings_btn.draw():
+                        settings = True
+                else:
+                    if volume_up_btn.draw():
+                        if volume < 10:
+                            volume += 1
+                    elif volume_down_btn.draw():
+                        if volume > 0:
+                            volume -= 1
+
             if level_change != 0:
                 total_hor_scroll = 0
                 total_ver_scroll = 0
@@ -2174,54 +2198,60 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if event.type == pygame.K_ESCAPE:
-            run = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if event.key == pygame.K_a:
                 moving_left = True
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_d:
                 moving_right = True
-            if event.key == pygame.K_z and player.alive:
+            if event.key == pygame.K_SPACE and player.alive:
                 player.jump = True
             if event.key == pygame.K_ESCAPE:
-                run = False
-            if event.key == pygame.K_a:
+                if pause_menu and not settings:
+                    pause_menu = False
+                elif settings:
+                    settings = False
+                else:
+                    pause_menu = True
+            if event.key == pygame.K_e:
                 shoot = True
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_f:
                 cast = True
             if event.key == pygame.K_m:
-                map_menu = True
+                if map_menu:
+                    map_menu = False
+                else:
+                    map_menu = True
             if event.key == pygame.K_DELETE:
                 player.alive = False
-            if event.key == pygame.K_x:
+            if event.key == pygame.K_q:
                 attack = True
             if event.key == pygame.K_i:
-                inventory = True
+                if inventory:
+                    inventory = False
+                else:
+                    inventory = True
             if event.key == pygame.K_TAB:
-                controls = True
-            if event.key == pygame.K_SPACE:
+                if controls:
+                    controls = False
+                else:
+                    controls = True
+            if event.key == pygame.K_z:
                 skip_text = True
 
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                moving_left = False
-            if event.key == pygame.K_RIGHT:
-                moving_right = False
-            if event.key == pygame.K_z:
-                player.jump = False
             if event.key == pygame.K_a:
-                shoot = False
-            if event.key == pygame.K_s:
-                cast = False
-            if event.key == pygame.K_m:
-                map_menu = False
-            if event.key == pygame.K_x:
-                attack = False
-            if event.key == pygame.K_i:
-                inventory = False
-            if event.key == pygame.K_TAB:
-                controls = False
+                moving_left = False
+            if event.key == pygame.K_d:
+                moving_right = False
             if event.key == pygame.K_SPACE:
+                player.jump = False
+            if event.key == pygame.K_e:
+                shoot = False
+            if event.key == pygame.K_f:
+                cast = False
+            if event.key == pygame.K_q:
+                attack = False
+            if event.key == pygame.K_z:
                 skip_text = False
 
     clock.tick(fps)
