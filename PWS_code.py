@@ -410,7 +410,7 @@ class Player(pygame.sprite.Sprite):
                     self.touching_wall = False
                     self.in_air = False
                     self.amount_jumps = 2
-                    dy = one_tile[1].top - self.rect.bottom
+                    dy = one_tile[1].top - self.rect.bottom - 1
 
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
