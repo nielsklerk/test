@@ -39,7 +39,7 @@ player_health = 10
 player_max_health = 10
 player_mana = 10
 player_max_mana = 10
-wallet = 0
+wallet = 30
 talking_phase = 1
 gathered_item_list = []
 gravity = 0.75
@@ -121,7 +121,7 @@ inventory_img = pygame.image.load("img/Menu/inventory.png")
 controls_img = pygame.image.load("img/Menu/Controls.png")
 game_over_img = pygame.image.load("img/Menu/death screen.png")
 speech_block_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (screen_width, screen_height - 480))
-shop_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (screen_width, screen_height - 480))
+shop_img = pygame.transform.scale(pygame.image.load("img/Menu/shop.png"), (screen_width, screen_height))
 
 # background images
 bg_img_list = []
@@ -1239,11 +1239,12 @@ class Shop():
     def __init__(self):
         self.max_health = player_max_health
         self.max_mana = player_max_mana
-        self.wallet = wallet
         self.broke = False
         self.text_cooldown = 60
 
     def draw(self):
+        screen.blit(shop_img, ((screen_width - shop_img.get_width()) // 2, 0))
+        self.wallet = wallet
         if self.text_cooldown < 60:
             self.text_cooldown += 1
         else:
@@ -1262,7 +1263,7 @@ class Shop():
             else:
                 self.broke = True
                 self.text_cooldown = 0
-        return self.max_health, self.max_mana, self.broke
+        return self.max_health, self.max_mana, self.broke, self.wallet
 
 
 class Boss(pygame.sprite.Sprite):
@@ -2074,8 +2075,8 @@ volume_down_btn = Button((screen_width - volume_down_img.get_width()) // 2 - 100
 inventory_btn = Button((screen_width - inventory_btn_img.get_width()) // 2, screen_height // 1 - 300, inventory_btn_img)
 save_btn = Button((screen_width - save_img.get_width()) // 2, screen_height // 1 - 400, save_img)
 load_btn = Button((screen_width - load_img.get_width()) // 2, screen_height // 1 - 350, load_img)
-mana_upgrade_btn = Button((screen_width - mana_img.get_width()) // 2, screen_height // 1 - 350, mana_img)
-health_upgrade_btn = Button((screen_width - health_img.get_width()) // 2, screen_height // 1 - 500, health_img)
+mana_upgrade_btn = Button((screen_width - mana_img.get_width()) // 2 - 158, screen_height // 1 - 322, mana_img)
+health_upgrade_btn = Button((screen_width - health_img.get_width()) // 2 - 158, screen_height // 1 - 368, health_img)
 ending_screen = Ending()
 
 world_data = []
@@ -2223,7 +2224,9 @@ while run:
                 ending_screen.update()
 
             if shop:
-                player_max_health, player_max_mana, broke = shop_menu.draw()
+                player_max_health, player_max_mana, broke, payment = shop_menu.draw()
+                player.wallet = payment
+                wallet = player.wallet
                 if broke:
                     screen.blit(speech_block_img, (0, 480))
                     draw_text("   You don\'t have enough money", font, (255, 255, 255), 10,
@@ -2286,7 +2289,6 @@ while run:
                         elif 38 <= level <= 48:
                             current_world = 4
                         world_data = reset_level()
-                        player = None
                         with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
@@ -2300,6 +2302,8 @@ while run:
                         fade(screen)
                         pause_menu = False
                     elif save_btn.draw():
+                        player_health = player.health
+                        player_mana = player.mana
                         with open("savefile.txt", "w") as f:
                             f.write(f"{player_max_mana}\n"
                                     f"{player_max_health}\n"
@@ -2434,7 +2438,7 @@ while run:
                 controls = False
             if event.key == pygame.K_SPACE:
                 skip_text = False
-    print(gathered_item_list)
+    print(wallet)
     clock.tick(fps)
     pygame.display.update()
 
