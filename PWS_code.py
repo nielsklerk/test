@@ -12,8 +12,14 @@ mixer.init()
 clock = pygame.time.Clock()
 fps = 60
 
-pos_dict = {0: (340, 290), 1: (390, 290), 2: (440, 290), 3: (440, 320), 4: (490, 290), 5: (540, 290), 6: (590, 290), 7: (440, 270), 8: (490, 270), 9: (540, 270), 10: (590, 270), 11: (390, 270), 12: (350, 260), 13: (310, 230), 14: (270, 230), 15: (640, 260), 16: (690, 260), 17: (740, 260), 18: (740, 230), 19: (790, 210), 20: (840, 230), 21: (840, 260), 22: (670, 230), 23: (700, 200), 24: (730, 180), 25: (780, 180), 26: (780, 120), 27: (270, 290), 28: (220, 310), 29: (270, 330), 30: (270, 360), 31: (310, 360), 32: (220, 360), 33: (170, 360), 34: (170, 390), 35: (210, 390), 36: (260, 390), 37: (310, 390), 38: (160, 420), 39: (160, 450), 40: (490, 450), 41: (490, 410), 42: (490, 390), 43: (540, 390), 44: (590, 390), 45: (640, 390), 46: (640, 360), 47: (640, 330), 48: (540, 330)}
-
+pos_dict = {0: (340, 290), 1: (390, 290), 2: (440, 290), 3: (440, 320), 4: (490, 290), 5: (540, 290), 6: (590, 290),
+            7: (440, 270), 8: (490, 270), 9: (540, 270), 10: (590, 270), 11: (390, 270), 12: (350, 260), 13: (310, 230),
+            14: (270, 230), 15: (640, 260), 16: (690, 260), 17: (740, 260), 18: (740, 230), 19: (790, 210),
+            20: (840, 230), 21: (840, 260), 22: (670, 230), 23: (700, 200), 24: (730, 180), 25: (780, 180),
+            26: (780, 120), 27: (270, 290), 28: (220, 310), 29: (270, 330), 30: (270, 360), 31: (310, 360),
+            32: (220, 360), 33: (170, 360), 34: (170, 390), 35: (210, 390), 36: (260, 390), 37: (310, 390),
+            38: (160, 420), 39: (160, 450), 40: (490, 450), 41: (490, 410), 42: (490, 390), 43: (540, 390),
+            44: (590, 390), 45: (640, 390), 46: (640, 360), 47: (640, 330), 48: (540, 330)}
 
 # screen size
 screen_width = 1024
@@ -51,11 +57,11 @@ shoot = False
 cast = False
 attack = False
 skip_text = False
-walljump_acquired = False
-doublejump_acquired = False
-emerald_acquired = False
-ruby_acquired = False
-sapphire_acquired = False
+walljump_acquired = True
+doublejump_acquired = True
+emerald_acquired = True
+ruby_acquired = True
+sapphire_acquired = True
 map_menu = False
 pause_menu = False
 settings = False
@@ -108,8 +114,8 @@ start_img = pygame.image.load("img/Button/start.png")
 exit_img = pygame.image.load("img/Button/exit.png")
 respawn_img = pygame.image.load("img/Button/respawn.png")
 settings_img = pygame.image.load("img/New Piskel.png")
-volume_up_img = pygame.image.load("img/New Piskel.png")
-volume_down_img = pygame.image.load("img/New Piskel.png")
+volume_up_img = pygame.image.load("img/Button/volume up.png")
+volume_down_img = pygame.image.load("img/Button/volume down.png")
 inventory_btn_img = pygame.image.load("img/New Piskel.png")
 save_img = pygame.image.load("img/Button/save.png")
 load_img = pygame.image.load("img/Button/load.png")
@@ -118,9 +124,9 @@ load_img = pygame.image.load("img/Button/load.png")
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
 inventory_img = pygame.image.load("img/Menu/inventory.png")
-controls_img = pygame.image.load("img/Menu/Controls.png")
+controls_img = pygame.transform.scale(pygame.image.load("img/Menu/Controls.png"), (screen_width - 200, screen_height - 200))
 game_over_img = pygame.image.load("img/Menu/death screen.png")
-speech_block_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (screen_width, screen_height - 480))
+speech_block_img = pygame.transform.scale(pygame.image.load("img/Menu/Speech bar.png"), (screen_width, screen_height - 480))
 shop_img = pygame.transform.scale(pygame.image.load("img/Menu/shop.png"), (screen_width, screen_height))
 
 # background images
@@ -213,7 +219,8 @@ def reset_level():
 
 def play_music(level_number):
     music = music_index
-    if ((0 <= level_number <= 5) or (8 <= level_number <= 20) or (22 <= level_number <= 30) or (32 <= level_number <= 36) or (38 <= level_number <= 49)) and music != 0:
+    if ((0 <= level_number <= 5) or (8 <= level_number <= 20) or (22 <= level_number <= 30) or (
+            32 <= level_number <= 36) or (38 <= level_number <= 49)) and music != 0:
         pygame.mixer.music.load("audio/General bg OST.mp3")
         pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(-1, 0.0, 4000)
@@ -242,7 +249,7 @@ def play_music(level_number):
     return music
 
 
-def fade(window): 
+def fade(window):
     fade = pygame.Surface((window.get_width(), window.get_height()))
     fade.fill((0, 0, 0))
     for alpha in range(0, 60):
@@ -376,7 +383,7 @@ class Player(pygame.sprite.Sprite):
                         self.jump = False
                         self.wall_jump = False
                         jump_fx.play()
-                        if not doublejump_acquired:
+                        if doublejump_acquired == False:
                             self.amount_jumps = 0
 
         if self.touching_wall and self.vel_y > 0:
@@ -435,7 +442,7 @@ class Player(pygame.sprite.Sprite):
         if self.rect.top < scroll_threshold_ver and not total_ver_scroll <= 0:
             self.rect.top = scroll_threshold_ver
             d_scroll_ver -= self.vel_y
-        if self.rect.bottom > screen_height - scroll_threshold_ver and\
+        if self.rect.bottom > screen_height - scroll_threshold_ver and \
                 total_ver_scroll < (world.level_height * tile_size) - screen_height:
             self.rect.y -= int(dy)
             d_scroll_ver = -self.vel_y
@@ -540,7 +547,8 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self):
         if self.attacking and self.direction == -1:
-            screen.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x - pygame.image.load("img/Player/Melee/0.png").get_width() - 29, self.rect.y))
+            screen.blit(pygame.transform.flip(self.image, self.flip, False),
+                        (self.rect.x - pygame.image.load("img/Player/Melee/0.png").get_width() - 29, self.rect.y))
         else:
             screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
@@ -762,18 +770,21 @@ class Npc(pygame.sprite.Sprite):
                         if self.text == 0:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("?:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   Oh, hello there! You don't seem to be from here.", font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text("   Oh, hello there! You don't seem to be from here.", font, (255, 255, 255), 10,
+                                      510, 0.3)
                             draw_text("   Are you lost traveller?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   Uhm.. hello.. I’m not sure either, my head hurts...", font, (255, 255, 255), 10,
+                            draw_text("   Uhm.. hello.. I’m not sure either, my head hurts...", font, (255, 255, 255),
+                                      10,
                                       510, 0.3)
                             draw_text("   What is this place? Who are you?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 2:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("?:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   This is my hometown, isn’t it beautiful? It’s nice to meet you, I’m joseph!", font, (255, 255, 255), 10,
+                            draw_text("   This is my hometown, isn’t it beautiful? It’s nice to meet you, I’m joseph!",
+                                      font, (255, 255, 255), 10,
                                       510, 0.3)
                             draw_text("   Do you perhaps... remember your name?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 3:
@@ -786,7 +797,8 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("   What a wonderful name, it sounds unfamiliar to me though.",
                                       font, (255, 255, 255), 10,
                                       510, 0.3)
-                            draw_text("   It does not sound like it came from any of our regions.. ", font, (255, 255, 255), 10, 530, 0.3)
+                            draw_text("   It does not sound like it came from any of our regions.. ", font,
+                                      (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 5:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
@@ -800,7 +812,9 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
                             draw_text("   I don’t recognize anything here.", font, (255, 255, 255), 10,
                                       510, 0.3)
-                            draw_text("   I just encountered monsters that attacked me on the way here.. is this.. Earth?", font, (255, 255, 255), 10, 530, 0.3)
+                            draw_text(
+                                "   I just encountered monsters that attacked me on the way here.. is this.. Earth?",
+                                font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 7:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
@@ -824,11 +838,14 @@ class Npc(pygame.sprite.Sprite):
                         elif self.text == 10:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   This is Elysium, the world that was once known for its lush nature and prosperous cities.",
-                                      font, (255, 255, 255), 10,
-                                      510, 0.3)
-                            draw_text("   It used to be bustling with activity, but it’s now all been reduced to empty regions", font,
-                                      (255, 255, 255), 10, 530, 0.3)
+                            draw_text(
+                                "   This is Elysium, the world that was once known for its lush nature and prosperous cities.",
+                                font, (255, 255, 255), 10,
+                                510, 0.3)
+                            draw_text(
+                                "   It used to be bustling with activity, but it’s now all been reduced to empty regions",
+                                font,
+                                (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 11:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
@@ -842,15 +859,18 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
                             draw_text("   Wow, that’s.. a lot to take in. I need a moment..", font, (255, 255, 255), 10,
                                       510, 0.3)
-                            draw_text("   I’m really sorry for your loss, but how do I get back?", font, (255, 255, 255), 10, 530, 0.3)
+                            draw_text("   I’m really sorry for your loss, but how do I get back?", font,
+                                      (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 13:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
                             draw_text("   That’s understandable, take your time.",
                                       font, (255, 255, 255), 10,
                                       510, 0.3)
-                            draw_text("   I think I might know someone that does know how to bring you back, but it will take a little bit of traveling.", font,
-                                      (255, 255, 255), 10, 530, 0.3)
+                            draw_text(
+                                "   I think I might know someone that does know how to bring you back, but it will take a little bit of traveling.",
+                                font,
+                                (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 14:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
@@ -862,7 +882,8 @@ class Npc(pygame.sprite.Sprite):
                         elif self.text == 15:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   It’s alright, please.. tell me where I can find them.", font, (255, 255, 255), 10,
+                            draw_text("   It’s alright, please.. tell me where I can find them.", font, (255, 255, 255),
+                                      10,
                                       510, 0.3)
                             draw_text("   I just want to go home.", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 16:
@@ -887,9 +908,10 @@ class Npc(pygame.sprite.Sprite):
                         elif self.text == 19:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   I unfortunately cannot go into the underground caves with you, so I hope you stay safe.",
-                                      font, (255, 255, 255), 10,
-                                      510, 0.3)
+                            draw_text(
+                                "   I unfortunately cannot go into the underground caves with you, so I hope you stay safe.",
+                                font, (255, 255, 255), 10,
+                                510, 0.3)
                             draw_text("   See you again, Adonis.", font,
                                       (255, 255, 255), 10, 530, 0.3)
 
@@ -905,33 +927,39 @@ class Npc(pygame.sprite.Sprite):
                         if self.text == 0:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   You’re back, Adonis! I’m glad to see you are alive and well.", font, (255, 255, 255), 10,
+                            draw_text("   You’re back, Adonis! I’m glad to see you are alive and well.", font,
+                                      (255, 255, 255), 10,
                                       510, 0.3)
                             draw_text("   Did you find him?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   Uncle Joseph, you do not realize how glad I am to see you again.", font, (255, 255, 255),
+                            draw_text("   Uncle Joseph, you do not realize how glad I am to see you again.", font,
+                                      (255, 255, 255),
                                       10,
                                       510, 0.3)
-                            draw_text("   Yes, I did find him, he’s.. eccentric. He was kind of rude too.", font, (255, 255, 255), 10, 530, 0.3)
+                            draw_text("   Yes, I did find him, he’s.. eccentric. He was kind of rude too.", font,
+                                      (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 2:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
                             draw_text("   Hahaha, that is unfortunate.",
                                       font, (255, 255, 255), 10,
                                       510, 0.3)
-                            draw_text("   What did he say, did he find a way to help you get back?", font, (255, 255, 255), 10, 530, 0.3)
+                            draw_text("   What did he say, did he find a way to help you get back?", font,
+                                      (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 3:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   He said something about getting an emerald from the desert,", font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text("   He said something about getting an emerald from the desert,", font,
+                                      (255, 255, 255), 10, 510, 0.3)
                             draw_text("   a ruby from the volcano and the sapphire from the snowy plains.", font,
                                       (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 4:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   He never told me where those places are though..", font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text("   He never told me where those places are though..", font, (255, 255, 255), 10,
+                                      510, 0.3)
                         elif self.text == 5:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
@@ -943,9 +971,10 @@ class Npc(pygame.sprite.Sprite):
                         elif self.text == 6:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   If you head to the right from this town, you'll arrive at the pyramid in the desert.",
-                                      font, (255, 255, 255), 10,
-                                      510, 0.3)
+                            draw_text(
+                                "   If you head to the right from this town, you'll arrive at the pyramid in the desert.",
+                                font, (255, 255, 255), 10,
+                                510, 0.3)
                         elif self.text == 7:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("Joseph:", font, (255, 255, 255), 10, 490, 0.3)
@@ -1126,10 +1155,12 @@ class Npc(pygame.sprite.Sprite):
                         elif self.text == 19:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("You:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   ..Wait, he didn’t tell me where to go. I guess I’ll just go back to uncle Joseph.", font,
-                                      (255, 255, 255),
-                                      10,
-                                      510, 0.3)
+                            draw_text(
+                                "   ..Wait, he didn’t tell me where to go. I guess I’ll just go back to uncle Joseph.",
+                                font,
+                                (255, 255, 255),
+                                10,
+                                510, 0.3)
                         else:
                             self.talking_phase += 1
                         break
@@ -1212,8 +1243,12 @@ class Npc(pygame.sprite.Sprite):
                         if self.text == 0:
                             screen.blit(speech_block_img, (0, 480))
                             draw_text("?:", font, (255, 255, 255), 10, 490, 0.3)
-                            draw_text("   Well would you look at that, there’s a new face around here. I haven\'t seen you before.", font, (255, 255, 255), 10, 510, 0.3)
-                            draw_text("   Would you be interested in some extra, absolutely uncursed, items to help you on your journey?", font, (255, 255, 255), 10, 530, 0.3)
+                            draw_text(
+                                "   Well would you look at that, there’s a new face around here. I haven\'t seen you before.",
+                                font, (255, 255, 255), 10, 510, 0.3)
+                            draw_text(
+                                "   Would you be interested in some extra, absolutely uncursed, items to help you on your journey?",
+                                font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
                             self.shop = True
                         break
@@ -1451,7 +1486,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
-                        or one_tile == 17) and previous_level == "Up":
+                    or one_tile == 17) and previous_level == "Up":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1461,7 +1496,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
-                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                    or one_tile == 25 or one_tile == 38) and previous_level == "Right":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1471,7 +1506,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
-                        or one_tile == 18) and previous_level == "Down":
+                    or one_tile == 18) and previous_level == "Down":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1481,7 +1516,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
-                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                    or one_tile == 26 or one_tile == 39) and previous_level == "Left":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1507,7 +1542,7 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 2:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", 1)
@@ -1522,14 +1557,14 @@ class World:
 
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 4:
                         exit_sign = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Right", 1)
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 5:
                         self.obstacle_list.append(tile_data)
                     elif one_tile == 6:
@@ -1540,14 +1575,14 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 8:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", -1)
                         exit_group.add(exit_sign)
                         if previous_level == "Right":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 9:
                         exit_sign = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Up", -1)
@@ -1555,70 +1590,70 @@ class World:
 
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 10:
                         exit_sign = Exit(exitleft_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Right", -1)
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 11:
                         exit_sign = Exit(exitup_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Down", -4)
                         exit_group.add(exit_sign)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 12:
                         exit_sign = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Up", 4)
                         exit_group.add(exit_sign)
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 13:
                         exit_sign = Exit(exitup_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Down", 5)
                         exit_group.add(exit_sign)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 14:
                         exit_sign = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Up", -5)
                         exit_group.add(exit_sign)
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 15:
                         exit_sign = Exit(exitup_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Down", 7)
                         exit_group.add(exit_sign)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 16:
                         exit_sign = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Up", -7)
                         exit_group.add(exit_sign)
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 17:
                         exit_sign = Exit(exitup_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Down", -13)
                         exit_group.add(exit_sign)
                         if previous_level == "Up":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 18:
                         exit_sign = Exit(exitdown_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Up", 13)
                         exit_group.add(exit_sign)
                         if previous_level == "Down":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 19:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", 5)
@@ -1632,7 +1667,7 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 21:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", -2)
@@ -1646,7 +1681,7 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 23:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", 2)
@@ -1660,7 +1695,7 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 25:
                         exit_sign = Exit(exitright_img, xcoords * tile_size + self.hor_off,
                                          ycoords * tile_size + self.ver_off, "Left", -4)
@@ -1674,7 +1709,7 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 27:
                         one_enemy = Enemy(False, xcoords * tile_size + self.hor_off,
                                           ycoords * tile_size + self.ver_off, 2, 300, 600)
@@ -1814,11 +1849,11 @@ class Item(pygame.sprite.Sprite):
         self.image = item_dict[self.item_type]
         self.rect = self.image.get_rect()
         self.rect.midtop = (xcoords + tile_size // 2, ycoords + tile_size - self.image.get_height())
-        self.walljump_acquired = False
-        self.doublejump_acquired = False
-        self.emerald_acquired = False
-        self.ruby_acquired = False
-        self.sapphire_acquired = False
+        self.walljump_acquired = walljump_acquired
+        self.doublejump_acquired = doublejump_acquired
+        self.emerald_acquired = emerald_acquired
+        self.ruby_acquired = ruby_acquired
+        self.sapphire_acquired = sapphire_acquired
 
     def update(self):
         self.rect.x += int(scroll_hor)
@@ -2018,7 +2053,8 @@ class Ending:
         self.cooldown += 1
         if self.cooldown <= 120:
             screen.fill((0, 0, 0))
-            draw_text("Phew.. thank god that’s over with.", font, (255, 255, 255), 0.4 * screen_width, screen_height // 2, 0.5)
+            draw_text("Phew.. thank god that’s over with.", font, (255, 255, 255), 0.4 * screen_width,
+                      screen_height // 2, 0.5)
         elif 120 < self.cooldown <= 240:
             screen.blit(ending0_img, (0, 0))
         elif 240 < self.cooldown <= 360:
@@ -2029,7 +2065,8 @@ class Ending:
             screen.blit(ending1_img, (0, 0))
         elif 480 < self.cooldown <= 600:
             screen.fill((0, 0, 0))
-            draw_text("I better get to the portal before he respawns or something..", font, (255, 255, 255), 0.1 * screen_width,
+            draw_text("I better get to the portal before he respawns or something..", font, (255, 255, 255),
+                      0.1 * screen_width,
                       screen_height // 2, 0.5)
         elif 600 < self.cooldown <= 720:
             screen.blit(ending2_img, (0, 0))
@@ -2071,7 +2108,8 @@ exit_btn = Button((screen_width - exit_img.get_width()) // 2, screen_height // 1
 respawn_btn = Button((screen_width - respawn_img.get_width()) // 2, screen_height // 1 - 200, respawn_img)
 settings_btn = Button((screen_width - settings_img.get_width()) // 2, screen_height // 1 - 250, settings_img)
 volume_up_btn = Button((screen_width - volume_up_img.get_width()) // 2 + 100, screen_height // 1 - 200, volume_up_img)
-volume_down_btn = Button((screen_width - volume_down_img.get_width()) // 2 - 100, screen_height // 1 - 200, volume_down_img)
+volume_down_btn = Button((screen_width - volume_down_img.get_width()) // 2 - 100, screen_height // 1 - 200,
+                         volume_down_img)
 inventory_btn = Button((screen_width - inventory_btn_img.get_width()) // 2, screen_height // 1 - 300, inventory_btn_img)
 save_btn = Button((screen_width - save_img.get_width()) // 2, screen_height // 1 - 400, save_img)
 load_btn = Button((screen_width - load_img.get_width()) // 2, screen_height // 1 - 350, load_img)
@@ -2119,7 +2157,8 @@ while run:
             enemy.update()
             enemy.draw()
             for x in range(enemy.health):
-                screen.blit(pygame.transform.scale(pygame.image.load("img/menu/HP bar.png"), (2, 2)), (enemy.rect.centerx + (2 * x) - 20, enemy.rect.centery - 30))
+                screen.blit(pygame.transform.scale(pygame.image.load("img/menu/HP bar.png"), (2, 2)),
+                            (enemy.rect.centerx + (2 * x) - 20, enemy.rect.centery - 30))
         for boss in boss_group:
             boss.ai()
             boss.update()
@@ -2132,15 +2171,15 @@ while run:
         spell_group.update()
         for item in item_group:
             gathered_item_list = item.update()
-            if not walljump_acquired:
+            if walljump_acquired == False:
                 walljump_acquired = gathered_item_list[0]
-            if not doublejump_acquired:
+            if doublejump_acquired == False:
                 doublejump_acquired = gathered_item_list[1]
-            if not emerald_acquired:
+            if emerald_acquired == False:
                 emerald_acquired = gathered_item_list[2]
-            if not ruby_acquired:
+            if ruby_acquired == False:
                 ruby_acquired = gathered_item_list[3]
-            if not sapphire_acquired:
+            if sapphire_acquired == False:
                 sapphire_acquired = gathered_item_list[4]
         decoration_group.update()
         lava_group.update()
@@ -2268,12 +2307,17 @@ while run:
                             list = []
                             for item in f.readlines():
                                 list.append(item.strip("\n"))
-                            player_max_mana, player_max_health, player_mana, player_health, previous_level, level, wallet, gathered_item_list, walljump_acquired, doublejump_acquired, emerald_acquired, ruby_acquired, sapphire_acquired = list
-                        print(walljump_acquired, doublejump_acquired, emerald_acquired, ruby_acquired, sapphire_acquired)
+                            print(list)
+                            player_max_mana, player_max_health, player_mana, player_health, previous_level, level, wallet, walljump_acquired, doublejump_acquired, emerald_acquired, ruby_acquired, sapphire_acquired = list
                         player_max_mana = int(player_max_mana)
                         player_max_health = int(player_max_health)
                         player_mana = int(player_mana)
                         player_health = int(player_health)
+                        walljump_acquired = eval(walljump_acquired)
+                        doublejump_acquired = eval(doublejump_acquired)
+                        emerald_acquired = eval(emerald_acquired)
+                        ruby_acquired = eval(ruby_acquired)
+                        sapphire_acquired = eval(sapphire_acquired)
                         level = int(level)
                         wallet = int(wallet)
                         total_hor_scroll = 0
@@ -2305,6 +2349,7 @@ while run:
                         player_health = player.health
                         player_mana = player.mana
                         with open("savefile.txt", "w") as f:
+                            f.write("")
                             f.write(f"{player_max_mana}\n"
                                     f"{player_max_health}\n"
                                     f"{player_mana}\n"
@@ -2312,7 +2357,6 @@ while run:
                                     f"{previous_level}\n"
                                     f"{level}\n"
                                     f"{wallet}\n"
-                                    f"{gathered_item_list}\n"
                                     f"{walljump_acquired}\n"
                                     f"{doublejump_acquired}\n"
                                     f"{emerald_acquired}\n"
@@ -2355,7 +2399,8 @@ while run:
             scroll_hor = 0
             screen.blit(game_over_img, (0, 0))
             if respawn_btn.draw():
-                player_health = player_max_health
+                player_health = player.health
+                player_mana = player.mana
                 wallet = player.wallet
                 total_hor_scroll = 0
                 total_ver_scroll = 0
@@ -2438,7 +2483,6 @@ while run:
                 controls = False
             if event.key == pygame.K_SPACE:
                 skip_text = False
-    print(wallet)
     clock.tick(fps)
     pygame.display.update()
 
