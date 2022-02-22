@@ -111,8 +111,8 @@ settings_img = pygame.image.load("img/New Piskel.png")
 volume_up_img = pygame.image.load("img/New Piskel.png")
 volume_down_img = pygame.image.load("img/New Piskel.png")
 inventory_btn_img = pygame.image.load("img/New Piskel.png")
-save_img = pygame.image.load("img/New Piskel.png")
-load_img = pygame.image.load("img/New Piskel.png")
+save_img = pygame.image.load("img/Button/save.png")
+load_img = pygame.image.load("img/Button/load.png")
 
 # menu images
 map_img = pygame.image.load("img/level layout map.png")
@@ -121,6 +121,7 @@ inventory_img = pygame.image.load("img/Menu/inventory.png")
 controls_img = pygame.image.load("img/Menu/Controls.png")
 game_over_img = pygame.image.load("img/Menu/death screen.png")
 speech_block_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (screen_width, screen_height - 480))
+shop_img = pygame.transform.scale(pygame.image.load("img/New Piskel.png"), (screen_width, screen_height - 480))
 
 # background images
 bg_img_list = []
@@ -410,7 +411,7 @@ class Player(pygame.sprite.Sprite):
                     self.touching_wall = False
                     self.in_air = False
                     self.amount_jumps = 2
-                    dy = one_tile[1].top - self.rect.bottom - 1
+                    dy = one_tile[1].top - self.rect.bottom - 0.1
 
         if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
             dx = 0
@@ -745,6 +746,7 @@ class Npc(pygame.sprite.Sprite):
         self.check_skip_cooldown = 10
         self.level_changer = 0
         self.talking_phase = talking_phase
+        self.shop = False
 
     def interact(self):
         if player.rect.colliderect(self.rect.x, self.rect.y, self.width, self.height):
@@ -1213,14 +1215,15 @@ class Npc(pygame.sprite.Sprite):
                             draw_text("   Well would you look at that, there’s a new face around here. I haven\'t seen you before.", font, (255, 255, 255), 10, 510, 0.3)
                             draw_text("   Would you be interested in some extra, absolutely uncursed, items to help you on your journey?", font, (255, 255, 255), 10, 530, 0.3)
                         elif self.text == 1:
-                            screen.blit(shop_img, (0, 0))
+                            self.shop = True
                         break
         else:
             self.text = 0
             self.check_skip_cooldown = 10
             self.talking_phase = talking_phase
+            self.shop = False
 
-        return self.level_changer, self.talking_phase
+        return self.level_changer, self.talking_phase, self.shop
 
     def update(self):
         self.rect.x += int(scroll_hor)
@@ -1230,6 +1233,36 @@ class Npc(pygame.sprite.Sprite):
 
     def draw(self):
         screen.blit(self.image, self.rect)
+
+
+class Shop():
+    def __init__(self):
+        self.max_health = player_max_health
+        self.max_mana = player_max_mana
+        self.wallet = wallet
+        self.broke = False
+        self.text_cooldown = 60
+
+    def draw(self):
+        if self.text_cooldown < 60:
+            self.text_cooldown += 1
+        else:
+            self.broke = False
+        if health_upgrade_btn.draw():
+            if self.wallet >= 10:
+                self.max_health += 1
+                self.wallet -= 10
+            else:
+                self.broke = True
+                self.text_cooldown = 0
+        elif mana_upgrade_btn.draw():
+            if self.wallet >= 10:
+                self.max_mana += 1
+                self.wallet -= 10
+            else:
+                self.broke = True
+                self.text_cooldown = 0
+        return self.max_health, self.max_mana, self.broke
 
 
 class Boss(pygame.sprite.Sprite):
@@ -1685,7 +1718,7 @@ class World:
                         exit_group.add(exit_sign)
                         if previous_level == "Left":
                             player_character = Player((xcoords + 0.5 + player.direction) * tile_size + self.hor_off,
-                                                     (ycoords + 0.5) * tile_size + self.ver_off)
+                                                      (ycoords + 0.5) * tile_size + self.ver_off)
                     elif one_tile == 40:
                         lava = Lava(image, xcoords * tile_size + self.hor_off, ycoords * tile_size + self.ver_off)
                         lava_group.add(lava)
@@ -2030,6 +2063,8 @@ fire_attack_group = pygame.sprite.Group()
 ball_attack_group = pygame.sprite.Group()
 wall_attack_group = pygame.sprite.Group()
 
+shop_menu = Shop()
+
 start_btn = Button((screen_width - start_img.get_width()) // 2, screen_height // 1 - 200, start_img)
 exit_btn = Button((screen_width - exit_img.get_width()) // 2, screen_height // 1 - 150, exit_img)
 respawn_btn = Button((screen_width - respawn_img.get_width()) // 2, screen_height // 1 - 200, respawn_img)
@@ -2039,6 +2074,8 @@ volume_down_btn = Button((screen_width - volume_down_img.get_width()) // 2 - 100
 inventory_btn = Button((screen_width - inventory_btn_img.get_width()) // 2, screen_height // 1 - 300, inventory_btn_img)
 save_btn = Button((screen_width - save_img.get_width()) // 2, screen_height // 1 - 400, save_img)
 load_btn = Button((screen_width - load_img.get_width()) // 2, screen_height // 1 - 350, load_img)
+mana_upgrade_btn = Button((screen_width - mana_img.get_width()) // 2, screen_height // 1 - 350, mana_img)
+health_upgrade_btn = Button((screen_width - health_img.get_width()) // 2, screen_height // 1 - 500, health_img)
 ending_screen = Ending()
 
 world_data = []
@@ -2065,11 +2102,11 @@ while run:
             music_started = True
         draw_bg()
         world.draw()
-        for x in range(player.max_health):
+        for x in range(player_max_health):
             screen.blit(max_health_img, (90 + (x * 20), 40))
         for x in range(player.health):
             screen.blit(health_img, (90 + (x * 20), 40))
-        for x in range(player.max_mana):
+        for x in range(player_max_mana):
             screen.blit(max_mana_img, (90 + (x * 20), 60))
         for x in range(player.mana):
             screen.blit(mana_img, (90 + (x * 20), 60))
@@ -2153,6 +2190,7 @@ while run:
                     break
                 if moving_left or moving_right:
                     player.update_action(1)
+                    shop = False
                     break
                 else:
                     player.update_action(0)
@@ -2172,8 +2210,10 @@ while run:
 
             if level_change == 0:
                 for npc in npc_group:
-                    level_change, talking_phase = npc.interact()
+                    level_change, talking_phase, shop = npc.interact()
                     npc.update()
+                if moving_left or moving_right:
+                    shop = False
 
             for boss in boss_group:
                 if boss.check_alive():
@@ -2181,6 +2221,13 @@ while run:
             if ending:
                 music_index = play_music(50)
                 ending_screen.update()
+
+            if shop:
+                player_max_health, player_max_mana, broke = shop_menu.draw()
+                if broke:
+                    screen.blit(speech_block_img, (0, 480))
+                    draw_text("   You don\'t have enough money", font, (255, 255, 255), 10,
+                              510, 0.3)
 
             if pause_menu:
                 screen.fill((0, 0, 0))
@@ -2214,9 +2261,59 @@ while run:
                     elif inventory_btn.draw():
                         inventory = True
                     elif load_btn.draw():
-                        pass
+                        with open("savefile.txt", "r") as f:
+                            list = []
+                            for item in f.readlines():
+                                list.append(item.strip("\n"))
+                            player_max_mana, player_max_health, player_mana, player_health, previous_level, level, wallet, gathered_item_list, walljump_acquired, doublejump_acquired, emerald_acquired, ruby_acquired, sapphire_acquired = list
+                        print(walljump_acquired, doublejump_acquired, emerald_acquired, ruby_acquired, sapphire_acquired)
+                        player_max_mana = int(player_max_mana)
+                        player_max_health = int(player_max_health)
+                        player_mana = int(player_mana)
+                        player_health = int(player_health)
+                        level = int(level)
+                        wallet = int(wallet)
+                        total_hor_scroll = 0
+                        total_ver_scroll = 0
+                        if 0 <= level <= 6:
+                            current_world = 0
+                        elif 7 <= level <= 14:
+                            current_world = 1
+                        elif 15 <= level <= 26:
+                            current_world = 2
+                        elif 27 <= level <= 37:
+                            current_world = 3
+                        elif 38 <= level <= 48:
+                            current_world = 4
+                        world_data = reset_level()
+                        player = None
+                        with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
+                            reader = csv.reader(csvfile, delimiter=',')
+                            for x, row in enumerate(reader):
+                                for y, tile in enumerate(row):
+                                    world_data[x][y] = int(tile)
+                        world = World()
+                        player = world.process_data(world_data)
+                        total_hor_scroll = -world.hor_off
+                        total_ver_scroll = -world.ver_off
+                        music_index = play_music(level)
+                        fade(screen)
+                        pause_menu = False
                     elif save_btn.draw():
-                        pass
+                        with open("savefile.txt", "w") as f:
+                            f.write(f"{player_max_mana}\n"
+                                    f"{player_max_health}\n"
+                                    f"{player_mana}\n"
+                                    f"{player_health}\n"
+                                    f"{previous_level}\n"
+                                    f"{level}\n"
+                                    f"{wallet}\n"
+                                    f"{gathered_item_list}\n"
+                                    f"{walljump_acquired}\n"
+                                    f"{doublejump_acquired}\n"
+                                    f"{emerald_acquired}\n"
+                                    f"{ruby_acquired}\n"
+                                    f"{sapphire_acquired}")
 
             if level_change != 0:
                 total_hor_scroll = 0
@@ -2234,9 +2331,7 @@ while run:
                     current_world = 4
                 level_change = 0
                 player_health = player.health
-                player_max_health = player.max_health
                 player_mana = player.mana
-                player_max_mana = player.max_mana
                 wallet = player.wallet
                 world_data = reset_level()
                 with open(f'level_data/level_data{level}.csv', newline='') as csvfile:
@@ -2254,7 +2349,6 @@ while run:
         else:
             scroll_ver = 0
             scroll_hor = 0
-            draw_text("You died", font, (0, 0, 0), 250, 60, 1)
             screen.blit(game_over_img, (0, 0))
             if respawn_btn.draw():
                 player_health = player_max_health
@@ -2272,6 +2366,7 @@ while run:
                 total_hor_scroll = -world.hor_off
                 total_ver_scroll = -world.ver_off
                 fade(screen)
+                pause_menu = False
             elif exit_btn.draw():
                 run = False
     else:
@@ -2339,7 +2434,7 @@ while run:
                 controls = False
             if event.key == pygame.K_SPACE:
                 skip_text = False
-
+    print(gathered_item_list)
     clock.tick(fps)
     pygame.display.update()
 
