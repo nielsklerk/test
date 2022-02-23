@@ -128,6 +128,7 @@ map_background_img = pygame.image.load("img/level background map.png")
 inventory_img = pygame.transform.scale(pygame.image.load("img/Menu/inventory.png"),
                                        (screen_width - 200, screen_height - 200))
 controls_img = pygame.image.load("img/Menu/Controls.png")
+controls_img = pygame.transform.scale(controls_img, (controls_img.get_width() * 2, controls_img.get_height() * 2))
 game_over_img = pygame.image.load("img/Menu/death screen.png")
 speech_block_img = pygame.transform.scale(pygame.image.load("img/Menu/Speech bar.png"),
                                           (screen_width, screen_height - 480))
@@ -2247,7 +2248,7 @@ while run:
                 screen.blit(pygame.transform.scale(pygame.image.load("img/menu/HP bar.png"), (10, 10)), pos_dict[level])
 
             if controls:
-                screen.blit(controls_img, (screen_width - controls_img.get_width(), inventory_img.get_height()))
+                screen.blit(controls_img, (screen_width - controls_img.get_width(), inventory_img.get_height() - 100))
             else:
                 draw_text("For Controls Press TAB", font, (255, 255, 255), 880, 126, 0.2)
                 draw_text("When Glitched Press Delete", font, (255, 255, 255), 866, 140, 0.2)
