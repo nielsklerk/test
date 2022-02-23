@@ -113,20 +113,22 @@ title_img = pygame.image.load("img/Menu/title screen.png")
 start_img = pygame.image.load("img/Button/start.png")
 exit_img = pygame.image.load("img/Button/exit.png")
 respawn_img = pygame.image.load("img/Button/respawn.png")
-settings_img = pygame.image.load("img/New Piskel.png")
+settings_img = pygame.image.load("img/Button/Volume.png")
 volume_up_img = pygame.image.load("img/Button/volume up.png")
 volume_down_img = pygame.image.load("img/Button/volume down.png")
-inventory_btn_img = pygame.image.load("img/New Piskel.png")
+inventory_btn_img = pygame.image.load("img/Button/Inventory.png")
 save_img = pygame.image.load("img/Button/save.png")
 load_img = pygame.image.load("img/Button/load.png")
 
 # menu images
 map_img = pygame.image.load("img/level layout map.png")
 map_background_img = pygame.image.load("img/level background map.png")
-inventory_img = pygame.image.load("img/Menu/inventory.png")
-controls_img = pygame.transform.scale(pygame.image.load("img/Menu/Controls.png"), (screen_width - 200, screen_height - 200))
+inventory_img = pygame.transform.scale(pygame.image.load("img/Menu/inventory.png"),
+                                       (screen_width - 200, screen_height - 200))
+controls_img = pygame.image.load("img/Menu/Controls.png")
 game_over_img = pygame.image.load("img/Menu/death screen.png")
-speech_block_img = pygame.transform.scale(pygame.image.load("img/Menu/Speech bar.png"), (screen_width, screen_height - 480))
+speech_block_img = pygame.transform.scale(pygame.image.load("img/Menu/Speech bar.png"),
+                                          (screen_width, screen_height - 480))
 shop_img = pygame.transform.scale(pygame.image.load("img/Menu/shop.png"), (screen_width, screen_height))
 
 # background images
@@ -383,7 +385,7 @@ class Player(pygame.sprite.Sprite):
                         self.jump = False
                         self.wall_jump = False
                         jump_fx.play()
-                        if doublejump_acquired == False:
+                        if not doublejump_acquired:
                             self.amount_jumps = 0
 
         if self.touching_wall and self.vel_y > 0:
@@ -1270,12 +1272,13 @@ class Npc(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
-class Shop():
+class Shop:
     def __init__(self):
         self.max_health = player_max_health
         self.max_mana = player_max_mana
         self.broke = False
         self.text_cooldown = 60
+        self.wallet = wallet
 
     def draw(self):
         screen.blit(shop_img, ((screen_width - shop_img.get_width()) // 2, 0))
@@ -1486,7 +1489,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 1 or one_tile == 7 or one_tile == 11 or one_tile == 13 or one_tile == 15
-                    or one_tile == 17) and previous_level == "Up":
+                        or one_tile == 17) and previous_level == "Up":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1496,7 +1499,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 2 or one_tile == 8 or one_tile == 19 or one_tile == 21 or one_tile == 23
-                    or one_tile == 25 or one_tile == 38) and previous_level == "Right":
+                        or one_tile == 25 or one_tile == 38) and previous_level == "Right":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1506,7 +1509,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 3 or one_tile == 9 or one_tile == 12 or one_tile == 14 or one_tile == 16
-                    or one_tile == 18) and previous_level == "Down":
+                        or one_tile == 18) and previous_level == "Down":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -1516,7 +1519,7 @@ class World:
                     else:
                         self.ver_off = -(ycoords - 6) * tile_size
                 if (one_tile == 4 or one_tile == 10 or one_tile == 20 or one_tile == 22 or one_tile == 24
-                    or one_tile == 26 or one_tile == 39) and previous_level == "Left":
+                        or one_tile == 26 or one_tile == 39) and previous_level == "Left":
                     if xcoords + 1.5 <= 11:
                         self.hor_off = 0
                     else:
@@ -2171,15 +2174,15 @@ while run:
         spell_group.update()
         for item in item_group:
             gathered_item_list = item.update()
-            if walljump_acquired == False:
+            if not walljump_acquired:
                 walljump_acquired = gathered_item_list[0]
-            if doublejump_acquired == False:
+            if not doublejump_acquired:
                 doublejump_acquired = gathered_item_list[1]
-            if emerald_acquired == False:
+            if not emerald_acquired:
                 emerald_acquired = gathered_item_list[2]
-            if ruby_acquired == False:
+            if not ruby_acquired:
                 ruby_acquired = gathered_item_list[3]
-            if sapphire_acquired == False:
+            if not sapphire_acquired:
                 sapphire_acquired = gathered_item_list[4]
         decoration_group.update()
         lava_group.update()
@@ -2274,24 +2277,25 @@ while run:
             if pause_menu:
                 screen.fill((0, 0, 0))
                 if settings:
+                    draw_text(f"{round(volume * 10)}", font, (255, 255, 255), 490, 126, 1)
                     if volume_up_btn.draw():
-                        if volume < 10:
-                            volume += 1
+                        if volume < 0.9:
+                            volume += 0.1
                     elif volume_down_btn.draw():
-                        if volume > 0:
-                            volume -= 1
+                        if volume > 0.1:
+                            volume -= 0.1
                 elif inventory:
-                    screen.blit(inventory_img, (screen_width - inventory_img.get_width(), 0))
+                    screen.blit(inventory_img, (100, 100))
                     if emerald_acquired:
-                        screen.blit(pygame.transform.scale(emerald_img, (28, 28)), (884, 14))
+                        screen.blit(pygame.transform.scale(emerald_img, (85, 85)), (210, 147))
                     if ruby_acquired:
-                        screen.blit(pygame.transform.scale(ruby_img, (28, 28)), (884, 47))
+                        screen.blit(pygame.transform.scale(ruby_img, (85, 85)), (210, 249))
                     if sapphire_acquired:
-                        screen.blit(pygame.transform.scale(sapphire_img, (18, 28)), (889, 80))
+                        screen.blit(pygame.transform.scale(sapphire_img, (55, 85)), (225, 349))
                     if doublejump_acquired:
-                        screen.blit(pygame.transform.scale(double_jump_item, (28, 28)), (916, 14))
+                        screen.blit(pygame.transform.scale(double_jump_item, (85, 85)), (385, 147))
                     if walljump_acquired:
-                        screen.blit(pygame.transform.scale(wall_jump_item, (28, 28)), (916, 47))
+                        screen.blit(pygame.transform.scale(wall_jump_item, (85, 85)), (385, 249))
                 else:
                     if exit_btn.draw():
                         run = False
@@ -2308,7 +2312,9 @@ while run:
                             for item in f.readlines():
                                 list.append(item.strip("\n"))
                             print(list)
-                            player_max_mana, player_max_health, player_mana, player_health, previous_level, level, wallet, walljump_acquired, doublejump_acquired, emerald_acquired, ruby_acquired, sapphire_acquired = list
+                            player_max_mana, player_max_health, player_mana, player_health,\
+                                previous_level, level, wallet, walljump_acquired, doublejump_acquired,\
+                                emerald_acquired, ruby_acquired, sapphire_acquired = list
                         player_max_mana = int(player_max_mana)
                         player_max_health = int(player_max_health)
                         player_mana = int(player_mana)
